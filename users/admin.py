@@ -1,19 +1,23 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin 
+from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
-from.models import User
+from .models import User
+
 # Register your models here.
 @admin.register(User)
 class CustomeUserAdmin(UserAdmin):
     def thumbnail(self, object):
-        #print(object.profileImg)
+        # print(object.profileImg)
         try:
             return format_html(
-              '<img src="{}" width="40" style="border-radius:50%"/>'.format(object.profileImg.url)
+                '<img src="{}" width="40" style="border-radius:50%"/>'.format(
+                    object.profileImg.url,
+                )
             )
         except:
-            pass 
-    thumbnail.short_description ='profileImg'
+            pass
+
+    thumbnail.short_description = "profileImg"
     fieldsets = (
         (
             "Profile",
@@ -51,9 +55,16 @@ class CustomeUserAdmin(UserAdmin):
             },
         ),
     )
-    
-    list_display = ("username", "profileImg","email", "nickname","pick", "age", "is_admin")
-    list_display_links=("email","nickname", "username")
-    list_filter=("username",)
-    search_fields=("username", "nickname")
 
+    list_display = (
+        "username",
+        "profileImg",
+        "email",
+        "nickname",
+        "pick",
+        "age",
+        "is_admin",
+    )
+    list_display_links = ("email", "nickname", "username")
+    list_filter = ("username",)
+    search_fields = ("username", "nickname")

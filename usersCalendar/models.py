@@ -1,24 +1,25 @@
 from django.db import models
 from common.models import CommonModel
 
-class UserCalendar(CommonModel):
-    
-    title=models.CharField(max_length=150, default="")#일정 제목
+# from times.models import TimeModel
 
-    my_schedule_content=models.TextField(#일정 내용
-        max_length=500, 
-        default="", 
-        blank=True, 
-        null=True
+
+class UserCalendar(CommonModel):
+
+    title = models.CharField(max_length=150, default="")  # 일정 제목
+
+    my_schedule_content = models.TextField(  # 일정 내용
+        max_length=500, default="", blank=True, null=True
     )
-    
-    owner=models.ForeignKey(#일정 주인 
+
+    owner = models.ForeignKey(  # 일정 주인
         "users.User",
         on_delete=models.CASCADE,
-        related_name="usersCalnedar",
+        related_name="usersCalendar",
     )
 
     def __str__(self):
         return self.title
+
     class Meta:
-        verbose_name_plural="User's Calendar"
+        verbose_name_plural = "User's Calendar"
