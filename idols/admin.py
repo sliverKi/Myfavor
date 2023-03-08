@@ -9,7 +9,6 @@ class Idols(admin.ModelAdmin):
     list_display = ("id", "idol_name", "idol_group", "idol_solo")
     list_display_links = (
         "id",
-        "idol_group",
         "idol_name",
     )
     search_fields = (
@@ -21,11 +20,16 @@ class Idols(admin.ModelAdmin):
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
     list_display = (
+        "pk",
         "ScheduleTitle",
-        # "start_time",
-        # "description",
+        "when",
         "created_at",
         "updated_at",
+    )
+    list_display_links = (
+        "pk",
+        "ScheduleTitle",
+    
     )
 
     readonly_fields = (

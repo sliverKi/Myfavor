@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from common.models import CommonModel
 
 # from times.models import TimeModel
@@ -16,7 +17,7 @@ class Idol(models.Model):
         BoySolo = ("BoySolo", "BoySolo")
 
     class GenderChoices(models.TextChoices):
-        Women = ("Women", "Women")
+        Woman = ("Woman", "Woman")
         Man = ("Man", "Man")
 
     idol_group = models.CharField(
@@ -31,8 +32,9 @@ class Idol(models.Model):
         null=True,
         choices=SoloChoices.choices,
     )
+
     idol_name = models.CharField(max_length=7)
-    idol_profile = models.URLField(max_length=10000)
+    idol_profile = models.URLField(max_length=10000, blank=True, null=True)
 
     idol_anniv = models.DateField()
     idol_birthday = models.DateField()
@@ -42,8 +44,9 @@ class Idol(models.Model):
         choices=GenderChoices.choices,
     )
 
-    idol_schedule = models.ManyToManyField(
+    idol_schedules = models.ManyToManyField(
         "idols.Schedule",
+        blank=True,
         related_name="idols",
     )
 
@@ -59,27 +62,33 @@ class Schedule(CommonModel):
 
     ScheduleTitle = models.CharField(
         max_length=150,
-        blank="",
-        null=True,
+        default="",
+        
     )
 
-    ScheduleType = models.CharField(
+    ScheduleType = models.ForeignKey(
+        "categories.Category",
         max_length=150,
-        blank="",
-        null=True,
-    )
-
-    participant = models.CharField(
-        max_length=150,
-        null=True,
         blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="schedules",
     )
-
+    location=models.CharField(
+        max_length=150,
+        default=""
+    )
+    participant = models.ManyToManyField(
+        "idols.Idol",
+        max_length=150,
+        blank=True,
+        related_name="schedules",
+    )
+    
     description = models.CharField(
         max_length=150,
-        null=True,
-        blank=True,
     )
+    when=models.DateTimeField(default=timezone.now())
 
     class Meta:
         verbose_name_plural = "Idol-Schedules"

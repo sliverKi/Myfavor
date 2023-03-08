@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
 
     name = models.CharField(max_length=100, default="")
-    nickname = models.CharField(max_length=100, default="")
+    nickname = models.CharField(max_length=100, default="", unique=True)
     email = models.EmailField(
         verbose_name="Email-address",
         max_length=100,

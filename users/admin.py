@@ -57,6 +57,7 @@ class CustomeUserAdmin(UserAdmin):
     )
 
     list_display = (
+        "id",
         "username",
         "profileImg",
         "email",

@@ -8,9 +8,7 @@ class UserCalendar(CommonModel):
 
     title = models.CharField(max_length=150, default="")  # 일정 제목
 
-    my_schedule_content = models.TextField(  # 일정 내용
-        max_length=500, default="", blank=True, null=True
-    )
+    content = models.TextField(max_length=500, default="", blank=True)  # 일정 내용
 
     owner = models.ForeignKey(  # 일정 주인
         "users.User",
