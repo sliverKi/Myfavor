@@ -9,6 +9,7 @@ class UserCalendarSerializer(ModelSerializer):
             "pk",
             "owner",
             "title",
+            "content",
             # "start_date", // 필요
             # "end_date", // 필요
         )
