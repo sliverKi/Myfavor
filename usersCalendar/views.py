@@ -14,21 +14,28 @@ from .serializers import UserCalendarSerializer
 
 
 class UsersCalendar(APIView):
-    permission_classes = IsAuthenticatedOrReadOnly
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        schedule = UserCalendar.objects.filter(user=request.user)
-        serializer = UserCalendarSerializer(schedule, data=request.data, many=True)
+        all_calendars = UserCalendar.objects.all()
+        serializer = UserCalendarSerializer(
+            all_calendars,
+            many=True,
+        )
+        return Response(serializer.data)
 
+    def post(self, request):
+        serializer = UserCalendarSerializer(data=request.data)
         if serializer.is_valid():
-            schedule = serializer.save()
-            serializer = UserCalendarSerializer(schedule, many=True)
-            return Response(serializer.data)
+            userCalendar = serializer.save()
+            return Response(serializer.data(userCalendar).data)
         else:
             return Response(serializer.errors)
 
 
 class UserCalendarDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get_object(self, pk):
         try:
             return UserCalendar.objects.get(pk=pk)
@@ -39,3 +46,20 @@ class UserCalendarDetail(APIView):
         user_calendar = self.get_object(pk)
         serializer = UserCalendarSerializer(user_calendar)
         return Response(serializer.data)
+
+    def put(self, request, pk):
+        user_calendar = self.get_object(pk)
+        serializer = UserCalendarSerializer(
+            user_calendar,
+            data=request.data,
+            partial=True,
+        )
+        if serializer.is_valid():
+            updated_user = serializer.save()
+            return Response(UserCalendarSerializer(updated_user).data)
+        else:
+            return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        user_calendar = self.get_object(pk).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

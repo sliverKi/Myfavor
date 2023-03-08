@@ -13,7 +13,7 @@ class ScheduleSerializer(ModelSerializer):
     participant = IdolsListSerializer(many=True, read_only=True)
     
     when=serializers.DateTimeField()
-   
+
     class Meta:
         model = Schedule
         fields = (
