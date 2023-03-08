@@ -13,7 +13,7 @@ class TinyUserSerializers(ModelSerializer):  # simple user-info
             "username",
             "nickname",
             "email",
-            "profileImg",
+            "profileImg",c
             "pick",
         )
 
