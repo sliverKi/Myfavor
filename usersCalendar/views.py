@@ -36,19 +36,19 @@ class UsersCalendar(APIView):
 class UserCalendarDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get_object(self, pk):
+    def get_object(self):
         try:
-            return UserCalendar.objects.get(pk=pk)
+            return UserCalendar.objects.get(all)
         except UserCalendar.DoesNotExist:
             raise NotFound
 
     def get(self, request, pk):
-        user_calendar = self.get_object(pk)
+        user_calendar = self.get_object()
         serializer = UserCalendarSerializer(user_calendar)
         return Response(serializer.data)
 
     def put(self, request, pk):
-        user_calendar = self.get_object(pk)
+        user_calendar = self.get_object()
         serializer = UserCalendarSerializer(
             user_calendar,
             data=request.data,

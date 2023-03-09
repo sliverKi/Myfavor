@@ -7,8 +7,11 @@ urlpatterns = [
     path("change-password", views.ChangePassword.as_view()),
     path("@<str:username>", views.PublicUser.as_view()),
     path("info/<int:pk>", views.UserDetail.as_view()),
-    path("login", views.Login.as_view()),  # [ X ]
-    path("logout", views.Logout.as_view()),  # [ X ]
+    # path("login", views.Login.as_view()),  # [ X ]
+    # path("logout", views.Logout.as_view()),  # [ X ]
+    path("login", views.Login.as_view()),
+    path("logout", views.Logout.as_view()),
+    path("register", views.Register.as_view()),
     ###################
     # path("ME/schedules", views.MySchedule.as_view()),  # - 수현
     # --
