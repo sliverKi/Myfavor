@@ -265,27 +265,27 @@ class ChangePassword(APIView):
 # post - o
 # put - ?
 # delete - ?
-class Login(APIView):
-    def post(self, request):
-        username = request.data.get("username")
-        # email = request.data.get("email")
-        password = request.data.get("password")
-        # print(email)
-        if not username or not password:
-            raise ParseError()
+# class Login(APIView):
+#     def post(self, request):
+#         username = request.data.get("username")
+#         # email = request.data.get("email")
+#         password = request.data.get("password")
+#         # print(email)
+#         if not username or not password:
+#             raise ParseError()
 
-        # 로그인 시 필요조건 (email, password)
-        user = authenticate(
-            request,
-            username=username,
-            password=password,
-        )
+#         # 로그인 시 필요조건 (email, password)
+#         user = authenticate(
+#             request,
+#             username=username,
+#             password=password,
+#         )
 
-        if user:
-            login(request, user)
-            return Response({"success": "로그인 성공!"})
-        else:
-            return Response({"error": "로그인 실패"})
+#         if user:
+#             login(request, user)
+#             return Response({"success": "로그인 성공!"})
+#         else:
+#             return Response({"error": "로그인 실패"})
 
 
 # # 로그아웃
@@ -301,35 +301,35 @@ class Login(APIView):
 #         return Response({"ok": "See You Again!"})
 
 
-# #.env 설정
+#.env 설정
 
-# import jwt
-# from environ import Env
-# from django.conf import settings
+import jwt
+from environ import Env
+from django.conf import settings
 
-# # jwtLogin
-# class Login(APIView):
-#     def post(self, request):
-#         username = request.data.get("username")
-#         password = request.data.get("password")
+# jwtLogin
+class Login(APIView):
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
 
-#         if not username or not password:
-#             raise ParseError
+        if not username or not password:
+            raise ParseError
 
-#         user = authenticate(
-#             request,
-#             username=username,
-#             password=password,
-#         )
+        user = authenticate(
+            request,
+            username=username,
+            password=password,
+        )
 
-#         if user:
-#             token = jwt.encode(
-#                 {"id": user.id, "username": user.username},
-#                 settings.env("SECRET_KEY"),
-#                 algorithm="HS256",
-#             )
-#             print(token)
-#             return Response({"token": token})
+        if user:
+            token = jwt.encode(
+                {"id": user.id, "username": user.username},
+                settings.env("SECRET_KEY"),
+                algorithm="HS256",
+            )
+            print(token)
+            return Response({"token": token})
 
 
 from django.contrib.auth import logout
