@@ -13,7 +13,7 @@ class UserCalendar(CommonModel):
     owner = models.ForeignKey(  # 일정 주인
         "users.User",
         on_delete=models.CASCADE,
-        related_name="usersCalendar",
+        related_name="usersCalendars",
     )
 
     def __str__(self):
