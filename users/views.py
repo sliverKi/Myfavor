@@ -26,28 +26,30 @@ from .serializers import (
 
 # 신규 유저 추가
 class Register(APIView):
-    # def validate(self, password):
-    #     if len(password) < 8 or len(password) > 16:
-    #         return ParseError("비밀번호는 8자 이상 16자 이하여야합니다.")
-    #     if (
-    #         not contains_uppercase_letter(password)
-    #         or not contains_lowercase_letter(password)
-    #         or not contains_number_letter(password)
-    #     ):
-
-    #         raise ValidationError("비밀번호는 영어 대/소문자와 숫자의 조합이여야합니다.")
-
-    def post(self, request):
+    
+   
+   def post(self, request):
         if request.data["age"] <= 15:
             raise ParseError("15세부터 가입이 가능합니다.")
 
         else:
             password = request.data.get("password")
-            # if self.validate(password):
-            #     return ParseError("비밀번호 유효성 체크 해야함 ")
+            password=str(password)
+            
+            if password:
+                if len(str(password))< 8 or len(str(password))>16: #길이 제한
+                    raise ParseError("비밀번호는 8-16자로 입력해 주세요.")
+                if (
+                    password.isdigit() or password.islower() or password.isupper() or 
+                    password in ['!', '@', '#', '$', '%', '^','&', '*','(',')', '~','-','+','=','<','>','?','/','"','{','[','}',']',':',';',',','.','`','|']
+                ): 
+                    raise ParseError("비밀번호는 8-16자 영어 대/소문자 특수문자로 구성되어 있습니다.")
+                
+            
             if not password:
                 raise ParseError("비밀번호를 입력해 주세요.")
-
+            
+            print("Password success")
             serializer = UserCreateSerializer(data=request.data)
             # serializer.save()
 
@@ -64,11 +66,7 @@ class Register(APIView):
                 return Response(serializer.errors)
 
 
-# 간단하게 보는 모든 유저 정보(TinyUser / all)
-# get
-# post
-# put
-# delete
+
 class Users(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -80,26 +78,6 @@ class Users(APIView):
             context={"request": request},
         )
         return Response(serializer.data)
-
-    # 신규 유저 추가
-    # def post(self, request):
-    #     password = request.data.get("password")
-    #     if not password:
-    #         raise ParseError
-
-    #     serializer = TinyUserSerializers(data=request.data)
-
-    #     if serializer.is_valid():
-    #         user = serializer.save()
-
-    #         user.set_password(password)
-    #         # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
-    #         user.save()
-
-    #         serializer = TinyUserSerializers(user)
-    #         return Response(serializer.data)
-    #     else:
-    #         return Response(serializer.errors)
 
     # 유저 정보 update
     def put(self, request):
@@ -118,11 +96,7 @@ class Users(APIView):
             return Response(serializer.errors)
 
 
-# 관리자 정보
-# get
-# post
-# put
-# delete
+
 class Admin(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -149,11 +123,6 @@ class Admin(APIView):
             return Response(serializer.errors)
 
 
-# @username 으로 검색
-# get - o
-# post
-# put - o
-# delete
 class PublicUser(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -164,16 +133,6 @@ class PublicUser(APIView):
             raise NotFound()
         serializer = PrivateUserSerializer(user)
         return Response(serializer.data)
-
-    # post 가 필요할까..?
-    # def post(self, request, username):
-    #     serializer = PrivateUserSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         user = serializer.save()
-    #         serializer = PrivateUserSerializer(user)
-    #         return Response(serializer.data)
-    #     else:
-    #         return Response(serializer.errors)
 
     def put(self, request, username):
         user = request.user
@@ -190,11 +149,6 @@ class PublicUser(APIView):
             return Response(serializer.errors)
 
 
-# pk로 검색 / user의 자세한 정보
-# get - o
-# post- ing
-# put - o
-# delete - ing
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -233,11 +187,7 @@ class UserDetail(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-# 비밀번호 변경
-# get - ?
-# post - ing
-# put - o
-# delete - ?
+
 class ChangePassword(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -260,11 +210,6 @@ class ChangePassword(APIView):
             raise ParseError
 
 
-# 로그인
-# get - ?
-# post - o
-# put - ?
-# delete - ?
 class Login(APIView):
     def post(self, request):
         username = request.data.get("username")
@@ -286,19 +231,6 @@ class Login(APIView):
             return Response({"success": "로그인 성공!"})
         else:
             return Response({"error": "로그인 실패"})
-
-
-# # 로그아웃
-# # get - ?
-# # post - o
-# # put - ?
-# # delete - ?
-# class Logout(APIView):
-#     permission_classes = [IsAuthenticated]  # 로그인 한 유저만 허용
-
-#     def post(self, request):
-#         logout(request)
-#         return Response({"ok": "See You Again!"})
 
 
 # #.env 설정
@@ -332,10 +264,10 @@ class Login(APIView):
 #             return Response({"token": token})
 
 
-from django.contrib.auth import logout
+# from django.contrib.auth import logout
 
 
 class Logout(APIView):
-    def post(self, request):
+     def post(self, request):
         logout(request)
         return Response(status=status.HTTP_200_OK)

@@ -208,8 +208,6 @@ django = ">=3.0"
 pytz = "*"
 
 [[package]]
-<<<<<<< HEAD
-=======
 name = "dotenv"
 version = "0.0.5"
 description = "Handle .env files"
@@ -221,7 +219,6 @@ files = [
 ]
 
 [[package]]
->>>>>>> su
 name = "jwt"
 version = "1.3.1"
 description = "JSON Web Token library for Python 3."
@@ -339,8 +336,6 @@ files = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
 name = "pyjwt"
 version = "2.6.0"
 description = "JSON Web Token implementation in Python"
@@ -359,7 +354,6 @@ docs = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
 tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
 
 [[package]]
->>>>>>> su
 name = "pytz"
 version = "2022.7.1"
 description = "World timezone definitions, modern and historical"
@@ -395,22 +389,7 @@ files = [
     {file = "tzdata-2022.7.tar.gz", hash = "sha256:fe5f866eddd8b96e9fcba978f8e503c909b19ea7efda11e52e39494bad3a7bfa"},
 ]
 
-[[package]]
-name = "validate"
-version = "1.0.1"
-description = "Config file reading, writing, and validation."
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "validate-1.0.1.tar.gz", hash = "sha256:21c57ea4fe5282d970d7df2469ffe32a3ee878d7af1a6e1f87ba196e6c04f952"},
-]
-
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-<<<<<<< HEAD
-content-hash = "ff84a0730c5b0d058bc0150e35b92bd803cfa20f916319b680b7da71ca9e6ff1"
-=======
-content-hash = "e2b648429a434ecac7c919a34c021217be0cc4943f810679e5f0cf71e05ffc7b"
->>>>>>> su
+content-hash = "b30eb87556d6b30a41cf915a53958b8f2ded9d6321b50f520ffe18c872c83858"
