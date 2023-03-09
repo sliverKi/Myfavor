@@ -22,8 +22,8 @@ class User(AbstractUser):
         # null=True,
         verbose_name="Email-address",
         max_length=100,
-        unique=True,
-        error_messages={"unique": "This email has already been registered."},
+        # unique=True,
+        error_messages={"unique": "이미 사용중인 이메일입니다."},
     )
     # profileImg = models.ImageField(upload_to="profile/%Y/%m/%d", blank=True, null=True)
     profileImg = models.URLField(blank=True, null=True)

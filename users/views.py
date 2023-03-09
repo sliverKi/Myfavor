@@ -14,18 +14,54 @@ from rest_framework.exceptions import (
     ParseError,
     PermissionDenied,
 )
+from django.core.exceptions import ValidationError
 from .models import User
 from .serializers import (
+    UserCreateSerializer,
     TinyUserSerializers,
     PrivateUserSerializer,
     UserDetailSerializer,
-    # UserCreateSerializer,
 )
 
 
-# 신규 유저 정보확인
-class NewUser(APIView):
-    pass
+# 신규 유저 추가
+class Register(APIView):
+    # def validate(self, password):
+    #     if len(password) < 8 or len(password) > 16:
+    #         return ParseError("비밀번호는 8자 이상 16자 이하여야합니다.")
+    #     if (
+    #         not contains_uppercase_letter(password)
+    #         or not contains_lowercase_letter(password)
+    #         or not contains_number_letter(password)
+    #     ):
+
+    #         raise ValidationError("비밀번호는 영어 대/소문자와 숫자의 조합이여야합니다.")
+
+    def post(self, request):
+        if request.data["age"] <= 15:
+            raise ParseError("15세부터 가입이 가능합니다.")
+
+        else:
+            password = request.data.get("password")
+            # if self.validate(password):
+            #     return ParseError("비밀번호 유효성 체크 해야함 ")
+            if not password:
+                raise ParseError("비밀번호를 입력해 주세요.")
+
+            serializer = UserCreateSerializer(data=request.data)
+            # serializer.save()
+
+            if serializer.is_valid():
+                user = serializer.save()
+
+                user.set_password(password)
+                # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
+                user.save()
+
+                serializer = UserCreateSerializer(user)
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors)
 
 
 # 간단하게 보는 모든 유저 정보(TinyUser / all)
@@ -46,24 +82,24 @@ class Users(APIView):
         return Response(serializer.data)
 
     # 신규 유저 추가
-    def post(self, request):
-        password = request.data.get("password")
-        if not password:
-            raise ParseError
+    # def post(self, request):
+    #     password = request.data.get("password")
+    #     if not password:
+    #         raise ParseError
 
-        serializer = TinyUserSerializers(data=request.data)
+    #     serializer = TinyUserSerializers(data=request.data)
 
-        if serializer.is_valid():
-            user = serializer.save()
+    #     if serializer.is_valid():
+    #         user = serializer.save()
 
-            user.set_password(password)
-            # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
-            user.save()
+    #         user.set_password(password)
+    #         # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
+    #         user.save()
 
-            serializer = TinyUserSerializers(user)
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+    #         serializer = TinyUserSerializers(user)
+    #         return Response(serializer.data)
+    #     else:
+    #         return Response(serializer.errors)
 
     # 유저 정보 update
     def put(self, request):
@@ -252,39 +288,54 @@ class Login(APIView):
             return Response({"error": "로그인 실패"})
 
 
-# 로그아웃
-# get - ?
-# post - o
-# put - ?
-# delete - ?
-class Logout(APIView):
-    permission_classes = [IsAuthenticated]  # 로그인 한 유저만 허용
+# # 로그아웃
+# # get - ?
+# # post - o
+# # put - ?
+# # delete - ?
+# class Logout(APIView):
+#     permission_classes = [IsAuthenticated]  # 로그인 한 유저만 허용
 
-    def post(self, request):
-        logout(request)
-        return Response({"ok": "See You Again!"})
+#     def post(self, request):
+#         logout(request)
+#         return Response({"ok": "See You Again!"})
 
 
 # #.env 설정
 
 # import jwt
+# from environ import Env
 # from django.conf import settings
 
-# class JWTLogin(APIView):
+# # jwtLogin
+# class Login(APIView):
 #     def post(self, request):
-#         username = request.data.gate("username")
-#         password = request.data.gate("password")
+#         username = request.data.get("username")
+#         password = request.data.get("password")
 
 #         if not username or not password:
 #             raise ParseError
 
-#         user = authenticate(request, username=username, password=password)
+#         user = authenticate(
+#             request,
+#             username=username,
+#             password=password,
+#         )
 
 #         if user:
 #             token = jwt.encode(
 #                 {"id": user.id, "username": user.username},
-#                 settings.SECRET_KEY,
+#                 settings.env("SECRET_KEY"),
 #                 algorithm="HS256",
 #             )
 #             print(token)
 #             return Response({"token": token})
+
+
+from django.contrib.auth import logout
+
+
+class Logout(APIView):
+    def post(self, request):
+        logout(request)
+        return Response(status=status.HTTP_200_OK)
