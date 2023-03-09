@@ -148,3 +148,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000"]
 CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000"]
+
+#GH_SECRET=env("GH_SECRET"), "insert cloudflare token"
+#CF_TOKEN=env("CF_TOCKEN")
+#CF_ID=env("CF_ID")
