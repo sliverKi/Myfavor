@@ -1,14 +1,15 @@
-
 from rest_framework import serializers
 from .models import User
+from idols.serializers import IdolsListSerializer
 from idols.models import Idol
 from datetime import date
 import re
 from rest_framework.exceptions import ParseError
+
 # 신규 유저 가입 시 확인절차
 class UserCreateSerializer(serializers.ModelSerializer):
-    
-    #age = serializers.SerializerMethodField()
+
+    # age = serializers.SerializerMethodField()
     class Meta:
         model = User
         exclude = (
@@ -24,16 +25,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "user_permissions",
         )
 
-    def validate_password(self, password):#비밀번호 체크 
-        password_regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$"
+    def validate_password(self, password):  # 비밀번호 체크
+        password_regex = (
+            r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$"
+        )
         if not re.match(password_regex, password):
             raise ParseError("비밀번호는 8-16자 영어 대/소문자, 숫자, 특수문자(@$!%*#?&)가 포함되어야 합니다.")
-            
-    def validate_age(self, age):#나이 체크  
+
+    def validate_age(self, age):  # 나이 체크
         if age:
-            if age<= 14:
+            if age <= 14:
                 raise ParseError("15세부터 가입이 가능합니다.")
-        else: raise ParseError("나이를 입력해 주세요.")    
+        else:
+            raise ParseError("나이를 입력해 주세요.")
+
 
 # from django.contrib.auth import User
 class TinyUserSerializers(serializers.ModelSerializer):  # simple user-info
@@ -55,6 +60,8 @@ class TinyUserSerializers(serializers.ModelSerializer):  # simple user-info
 
 
 class PrivateUserSerializer(serializers.ModelSerializer):
+    pick = IdolsListSerializer()
+
     class Meta:
         model = User
         exclude = (
@@ -66,6 +73,9 @@ class PrivateUserSerializer(serializers.ModelSerializer):
             "last_name",
             "groups",
             "user_permissions",
+            "last_login",
+            "name",
+            "is_admin",
         )
 
 
