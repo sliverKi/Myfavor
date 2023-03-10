@@ -35,7 +35,7 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,  
         related_name="users",  
     )
-
+    print(type(pick))
     def str(self):
         return self.name
 

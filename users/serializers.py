@@ -7,6 +7,7 @@ import re
 from rest_framework.exceptions import ParseError
 # 신규 유저 가입 시 확인절차
 class UserCreateSerializer(serializers.ModelSerializer):
+    
     #age = serializers.SerializerMethodField()
     class Meta:
         model = User
@@ -18,6 +19,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_active",
             "name",
+            "pick",
             "is_admin",
             "user_permissions",
         )

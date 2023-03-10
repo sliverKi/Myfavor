@@ -40,7 +40,7 @@ class Idol(models.Model):
         max_length=10000, 
         blank=True, 
         null=True,
-        validators=[URLValidator( "유효한 URL을 입력하세요. ")]
+        #validators=[URLValidator( "유효한 URL을 입력하세요. ")]
     )
 
     idol_anniv = models.DateField(default=datetime.date.today)

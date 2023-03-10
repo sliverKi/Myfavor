@@ -28,6 +28,8 @@ ALLOWED_HOSTS = []
 
 THIRD_PARTY_APPS = [
     "rest_framework",
+    #"rest_framework_jwt",
+
     "corsheaders",
 ]
 

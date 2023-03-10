@@ -48,7 +48,7 @@ class Register(APIView):
 
 
 class Users(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get(self, request):  # 조회
         all_users = User.objects.all()  # 모든 Users 불러와
@@ -78,7 +78,7 @@ class Users(APIView):
 
 
 class Admin(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     # 관리자 정보 조회
     def get(self, request):
@@ -104,7 +104,7 @@ class Admin(APIView):
 
 
 class PublicUser(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get(self, request, username):
         try:
@@ -130,7 +130,7 @@ class PublicUser(APIView):
 
 
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     # 유저 정보 조회
     def get_object(self, pk):
@@ -169,7 +169,7 @@ class UserDetail(APIView):
 
 
 class ChangePassword(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     # 유저 비번 update
     def put(self, request):
@@ -251,6 +251,4 @@ class Logout(APIView):
 #             )
 #             print(token)
 #             return Response({"token": token})
-
-
 # from django.contrib.auth import logout
