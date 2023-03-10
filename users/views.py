@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render
 from django.conf import settings
 from django.db import transaction
@@ -27,43 +28,22 @@ from .serializers import (
 # 신규 유저 추가
 class Register(APIView):
     
-   
-   def post(self, request):
-        if request.data["age"] <= 15:
-            raise ParseError("15세부터 가입이 가능합니다.")
-
+    def post(self, request):
+        password = request.data.get("password")
+        
+        if not password:
+            raise ParseError("비밀번호를 입력해 주세요.")
+    
+        serializer =  UserCreateSerializer(data=request.data)
+    
+        if serializer.is_valid():
+            user = serializer.save()
+            user.set_password(password)
+            # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
+            user.save()
+            return Response(serializer.data)
         else:
-            password = request.data.get("password")
-            password=str(password)
-            
-            if password:
-                if len(str(password))< 8 or len(str(password))>16: #길이 제한
-                    raise ParseError("비밀번호는 8-16자로 입력해 주세요.")
-                if (
-                    password.isdigit() or password.islower() or password.isupper() or 
-                    password in ['!', '@', '#', '$', '%', '^','&', '*','(',')', '~','-','+','=','<','>','?','/','"','{','[','}',']',':',';',',','.','`','|']
-                ): 
-                    raise ParseError("비밀번호는 8-16자 영어 대/소문자 특수문자로 구성되어 있습니다.")
-                
-            
-            if not password:
-                raise ParseError("비밀번호를 입력해 주세요.")
-            
-            print("Password success")
-            serializer = UserCreateSerializer(data=request.data)
-            # serializer.save()
-
-            if serializer.is_valid():
-                user = serializer.save()
-
-                user.set_password(password)
-                # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
-                user.save()
-
-                serializer = UserCreateSerializer(user)
-                return Response(serializer.data)
-            else:
-                return Response(serializer.errors)
+            return Response(serializer.errors)  
 
 
 
@@ -212,25 +192,38 @@ class ChangePassword(APIView):
 
 class Login(APIView):
     def post(self, request):
-        username = request.data.get("username")
-        # email = request.data.get("email")
+        
+        email = request.data.get("email")
         password = request.data.get("password")
-        # print(email)
-        if not username or not password:
-            raise ParseError()
-
+        
+        if not email or not password:
+            raise ParseError("잘못된 정보를 입력하였습니다.")
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "로그인 실패"})
+        
+        username = user.username
         # 로그인 시 필요조건 (email, password)
         user = authenticate(
             request,
             username=username,
             password=password,
         )
-
         if user:
             login(request, user)
-            return Response({"success": "로그인 성공!"})
+            return Response(status=status.HTTP_200_OK)
         else:
-            return Response({"error": "로그인 실패"})
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+
+
+
+class Logout(APIView):
+     def post(self, request):
+        logout(request)
+        return Response(status=status.HTTP_200_OK)
 
 
 # #.env 설정
@@ -265,9 +258,3 @@ class Login(APIView):
 
 
 # from django.contrib.auth import logout
-
-
-class Logout(APIView):
-     def post(self, request):
-        logout(request)
-        return Response(status=status.HTTP_200_OK)
