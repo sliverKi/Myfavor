@@ -16,8 +16,14 @@ class UserCalendar(CommonModel):
         related_name="usersCalendars",
     )
 
+    # start_date = models.DateTimeField()
+    # end_date = models.DateTimeField()
+
     def __str__(self):
         return self.title
+
+    def __str__(user):
+        return user.owner
 
     class Meta:
         verbose_name_plural = "User's Calendar"

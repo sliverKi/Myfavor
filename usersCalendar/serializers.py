@@ -3,13 +3,18 @@ from .models import UserCalendar
 
 
 class UserCalendarSerializer(ModelSerializer):
+    owner = UserCalendar()
+
     class Meta:
         model = UserCalendar
         fields = (
             "pk",
-            "owner",
+            "owner",  # username = 일정주인
             "title",
             "content",
-            # "start_date", // 필요
-            # "end_date", // 필요
+            # "start_date",
+            # "end_date",
         )
+
+
+# class UserDetailsSerializer(ModelSerializer):

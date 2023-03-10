@@ -1,3 +1,6 @@
+import jwt
+
+from django.conf import settings
 import re
 from django.shortcuts import render
 from django.conf import settings
@@ -8,7 +11,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_403_FORBIDDEN,
+)
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -18,7 +26,6 @@ from rest_framework.exceptions import (
 from django.core.exceptions import ValidationError
 from .models import User
 from .serializers import (
-    UserCreateSerializer,
     TinyUserSerializers,
     PrivateUserSerializer,
     UserDetailSerializer,
@@ -26,29 +33,25 @@ from .serializers import (
 
 
 # 신규 유저 추가
-class Register(APIView):
-    
+class Users(APIView):
     def post(self, request):
         password = request.data.get("password")
-        
         if not password:
-            raise ParseError("비밀번호를 입력해 주세요.")
-    
-        serializer =  UserCreateSerializer(data=request.data)
-    
+            raise ParseError
+
+        serializer = PrivateUserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             user.set_password(password)
-            # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
             user.save()
+            serializer = PrivateUserSerializer(user)
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)  
+            return Response(serializer.errors)
 
 
-
-class Users(APIView):
-    #permission_classes = [IsAuthenticated]
+class AllUsers(APIView):
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):  # 조회
         all_users = User.objects.all()  # 모든 Users 불러와
@@ -76,14 +79,13 @@ class Users(APIView):
             return Response(serializer.errors)
 
 
-
 class Admin(APIView):
-    #permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     # 관리자 정보 조회
     def get(self, request):
         user = request.user
-        serializer = TinyUserSerializers(user)
+        serializer = PrivateUserSerializer(user)
         return Response(serializer.data)
 
     # 관리자 정보 update
@@ -103,14 +105,16 @@ class Admin(APIView):
             return Response(serializer.errors)
 
 
+# 유저 정보 조회 (username으로 조회)
 class PublicUser(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, username):
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             raise NotFound()
+
         serializer = PrivateUserSerializer(user)
         return Response(serializer.data)
 
@@ -128,11 +132,17 @@ class PublicUser(APIView):
         else:
             return Response(serializer.errors)
 
+    def delete(self, request, username):
+        user = self.get_object(username)
+        user.delete()
+        return Response(status=status.HTTP_200_OK)
+
+    # 유저 정보 조회(pk로 조회 - 좀 더 자세함 / admin 용)
+
 
 class UserDetail(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    # 유저 정보 조회
     def get_object(self, pk):
         try:
             return User.objects.get(pk=pk)
@@ -167,9 +177,8 @@ class UserDetail(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-
 class ChangePassword(APIView):
-    #permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     # 유저 비번 update
     def put(self, request):
@@ -184,7 +193,7 @@ class ChangePassword(APIView):
         if user.check_password(old_password):
             user.set_password(new_password)
             user.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response(status=HTTP_200_OK)
 
         else:
             raise ParseError
@@ -192,22 +201,22 @@ class ChangePassword(APIView):
 
 class Login(APIView):
     def post(self, request):
-        
+
         email = request.data.get("email")
         password = request.data.get("password")
-        
+
         if not email or not password:
             raise ParseError("잘못된 정보를 입력하였습니다.")
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({"error": "로그인 실패"})
-        
-        username = user.username
+
+        # username = user.username
         # 로그인 시 필요조건 (email, password)
         user = authenticate(
             request,
-            username=username,
+            email=email,
             password=password,
         )
         if user:
@@ -216,39 +225,32 @@ class Login(APIView):
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
+
 class Logout(APIView):
-     def post(self, request):
+    def post(self, request):
         logout(request)
         return Response(status=status.HTTP_200_OK)
 
 
-# #.env 설정
-
-# import jwt
-# from environ import Env
-# from django.conf import settings
-
-# # jwtLogin
-# class Login(APIView):
-#     def post(self, request):
-#         username = request.data.get("username")
-#         password = request.data.get("password")
-
-#         if not username or not password:
-#             raise ParseError
-
-#         user = authenticate(
-#             request,
-#             username=username,
-#             password=password,
-#         )
-
-#         if user:
-#             token = jwt.encode(
-#                 {"id": user.id, "username": user.username},
-#                 settings.env("SECRET_KEY"),
-#                 algorithm="HS256",
-#             )
-#             print(token)
-#             return Response({"token": token})
-# from django.contrib.auth import logout
+# JWT Login
+class JWTLogin(APIView):
+    def post(self, request):
+        # username = request.data.get("username")
+        username = request.data.get("username")
+        password = request.data.get("password")
+        if not username or not password:
+            raise ParseError
+        user = authenticate(
+            request,
+            username=username,
+            password=password,
+        )
+        if user:
+            token = jwt.encode(
+                {"pk": user.pk},
+                settings.SECRET_KEY,
+                algorithm="HS256",
+            )
+            return Response({"token": token})
+        else:
+            return Response({"error": "비밀번호가 틀렸습니다."})

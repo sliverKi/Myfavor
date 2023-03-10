@@ -1,35 +1,28 @@
 from pathlib import Path
-from environ import Env
+import os
+import environ
 
+env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = Env()
-
-env_path = BASE_DIR / ".env"
-
-if env_path.exists():
-    if env_path.exists():
-        with env_path.open("rt", encoding="utf8") as f:
-            env.read_env(f, overwrite=True)
-
+environ.Env.read_env(os.path.join(BASE_DIR,".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-b&zbdnj*=f(&s8a7i*3rzg4t2ns@iwf_afy)vt74k51+p86$p$"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 THIRD_PARTY_APPS = [
     "rest_framework",
-    #"rest_framework_jwt",
-
+    "rest_framework.authtoken",
     "corsheaders",
 ]
 
@@ -151,10 +144,20 @@ CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000"]
 CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000"]
 
 
-#SESSION_COOKIE_AGE=1200 #유지 시간 : 20분  세션 정보 갱신 
-#SESSION_SAVE_EVERY_REQUEST=True #사용자가 응답을 보내지 않으면 세션 타임 아웃
+# SESSION_COOKIE_AGE=1200 #유지 시간 : 20분  세션 정보 갱신
+# SESSION_SAVE_EVERY_REQUEST=True #사용자가 응답을 보내지 않으면 세션 타임 아웃
 
 
-#GH_SECRET=env("GH_SECRET"), "insert cloudflare token"
-#CF_TOKEN=env("CF_TOCKEN")
-#CF_ID=env("CF_ID")
+# GH_SECRET=env("GH_SECRET"), "insert cloudflare token"
+# CF_TOKEN=env("CF_TOCKEN")
+# CF_ID=env("CF_ID")
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        # "config.authentication.TrustMeBrokerAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+        "config.authentication.JWTAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ]
+}

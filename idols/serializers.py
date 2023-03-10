@@ -39,7 +39,3 @@ class IdolDetailSerializer(ModelSerializer):
         model = Idol
         fields = "__all__"
 
-   
-
-
-            

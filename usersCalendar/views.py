@@ -33,33 +33,46 @@ class UsersCalendar(APIView):
             return Response(serializer.errors)
 
 
+# 유저 일정 조회 (owner로 조회)
 class UserCalendarDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get_object(self):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, request, owner):
         try:
-            return UserCalendar.objects.get(all)
+            return UserCalendar.objects.get(owner=owner)
+            # user_calendar = self.objects.get(owner=owner)
         except UserCalendar.DoesNotExist:
-            raise NotFound
-
-    def get(self, request, pk):
-        user_calendar = self.get_object()
+            raise NotFound()
+        
+    def get(self, request, owner):
+        user_calendar = self.get_object(owner)
         serializer = UserCalendarSerializer(user_calendar)
+        
         return Response(serializer.data)
 
-    def put(self, request, pk):
-        user_calendar = self.get_object()
+    # 유저 캘린더 업데이트
+    def put(self, request, owner):
+        user_calendar = request.user_calendar
         serializer = UserCalendarSerializer(
             user_calendar,
             data=request.data,
             partial=True,
         )
         if serializer.is_valid():
-            updated_user = serializer.save()
-            return Response(UserCalendarSerializer(updated_user).data)
+            serializer.save()
+            serializer = UserCalendarSerializer(user_calendar)
+            return Response(serializer.data)
         else:
             return Response(serializer.errors)
 
-    def delete(self, request, pk):
-        user_calendar = self.get_object(pk).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, owner):
+        user_calendar = self.get_object(owner)
+        user_calendar.delete()
+        return Response(status=status.HTTP_200_OK)
+
+class UserDetailCalendar(APIView):
+    def get(self, request, username):
+        calendar = UserCalendar.objects.get(username=username)
+        serializer = UserCalendarSerializer(calendar)
+        return Response(serializer.data)
