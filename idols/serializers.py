@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
+from rest_framework.exceptions import ParseError
 from .models import Idol, Schedule
 from categories.serializers import CategorySerializer
 class IdolsListSerializer(ModelSerializer):
@@ -29,7 +30,7 @@ class ScheduleSerializer(ModelSerializer):
 
 
 class IdolDetailSerializer(ModelSerializer):
-
+    
     idol_schedules = ScheduleSerializer(
         read_only=True, many=True  # 스케줄을 필수 항목으로 인식하지 않음
     )
@@ -37,3 +38,8 @@ class IdolDetailSerializer(ModelSerializer):
     class Meta:
         model = Idol
         fields = "__all__"
+
+   
+
+
+            

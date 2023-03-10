@@ -148,6 +148,11 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000"]
 CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000"]
 
+
+#SESSION_COOKIE_AGE=1200 #유지 시간 : 20분  세션 정보 갱신 
+#SESSION_SAVE_EVERY_REQUEST=True #사용자가 응답을 보내지 않으면 세션 타임 아웃
+
+
 #GH_SECRET=env("GH_SECRET"), "insert cloudflare token"
 #CF_TOKEN=env("CF_TOCKEN")
 #CF_ID=env("CF_ID")

@@ -216,10 +216,6 @@ class Login(APIView):
         else:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-
-
-
-
 class Logout(APIView):
      def post(self, request):
         logout(request)
