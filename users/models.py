@@ -1,10 +1,16 @@
 from django.db import models
 from django.core.validators import MinLengthValidator
-from django.contrib.auth.models import AbstractUser
-
+from django.contrib.auth.models import (
+    AbstractUser,
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
+from django.utils import timezone
+from categories.models import Category
+from datetime import datetime
 
 class User(AbstractUser):
-
     name = models.CharField(
         max_length=100,
         default="",
@@ -12,9 +18,10 @@ class User(AbstractUser):
         validators=[MinLengthValidator(2, "이름은 2자 이상이어야합니다.")],
     )
     nickname = models.CharField(
+       
         max_length=100,
         default="",
-        unique=True,
+        #unique=True,
         validators=[MinLengthValidator(3, "닉네임은 3자 이상이어야합니다.")],
     )
     email = models.EmailField(
@@ -25,19 +32,82 @@ class User(AbstractUser):
         error_messages={"unique": "이미 사용중인 이메일입니다."},
     )
     profileImg = models.URLField(blank=True, null=True)
-    age = models.PositiveIntegerField(default=0)
-    is_admin = models.BooleanField(default=False)
 
-    pick = models.ForeignKey(  
+    age = models.PositiveIntegerField(default=0)
+    
+    is_admin = models.BooleanField(default=False)#관리자 - 사용자 구분
+    
+    pick = models.ForeignKey(
         "idols.Idol",
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,  
-        related_name="users",  
+        on_delete=models.SET_NULL,
+        related_name="users",
     )
-    print(type(pick))
+    reports=models.ManyToManyField(
+        "users.Report",
+        null=True,
+        blank=True,
+        related_name="users",
+    )
+    
     def str(self):
         return self.name
-
     class Meta:
         verbose_name_plural = "Our_Users"
+
+class NewUser(BaseUserManager):
+    def create_user(self, email, username, age, password, pick):
+        if not email:
+            raise ValueError("이메일을 입력하세요")
+        if not username:
+            raise ValueError("이름을 입력하세요")
+        if not password:
+            raise ValueError("비밀번호를 입력하세요")
+        if not pick:
+            raise ValueError("최애를 입력하세요")
+        if not age:
+            raise ValueError("나이를 입력하세요")
+        user = self.model(email=self.normalize_email(email), username=username)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    def __str__(self):
+        return self.username
+    
+    def __str__(self):
+        return self.email
+    
+    def __str__(self):
+        return self.pick
+    class Meta:
+        fields = "__all__"
+
+
+
+
+
+class Report(Category):
+
+    owner=models.ForeignKey( #작성자
+    "users.User",
+    max_length=100,
+    default="",
+    on_delete=models.CASCADE,
+    related_name="report")
+
+    title=models.CharField(max_length=100, default="")
+    location=models.CharField(max_length=100, default="")
+    time=models.DateTimeField(default= datetime.now)
+    whoes=models.ManyToManyField( #참여자
+        "idols.Idol",
+        null=True,
+        blank=True,
+        related_name="report",
+    )
+
+    def str(self):
+        return self.title
+
+    class Meta:
+        verbose_name_plural = "User Report"

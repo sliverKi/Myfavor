@@ -16,40 +16,28 @@ from rest_framework.exceptions import (
     PermissionDenied,
 )
 from django.core.exceptions import ValidationError
-from .models import User
+from .models import User, Report
 from .serializers import (
-    UserCreateSerializer,
     TinyUserSerializers,
     PrivateUserSerializer,
     UserDetailSerializer,
+    ReportSerializer,
+    ReportDetailSerializer
 )
-
-
+from idols.serializers import ScheduleSerializer
+from idols.models import Idol
 # 신규 유저 추가
-class Register(APIView):
-    
+class Users(APIView): # OK
     def post(self, request):
-        password = request.data.get("password")
-        
-        if not password:
-            raise ParseError("비밀번호를 입력해 주세요.")
-    
-        serializer =  UserCreateSerializer(data=request.data)
-    
+        serializer = PrivateUserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            user.set_password(password)
-            # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
-            user.save()
+            serializer = PrivateUserSerializer(user)
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)  
-
-
-
-class Users(APIView):
-    #permission_classes = [IsAuthenticated]
-
+            return Response(serializer.errors)
+class AllUsers(APIView):
+    
     def get(self, request):  # 조회
         all_users = User.objects.all()  # 모든 Users 불러와
         serializer = TinyUserSerializers(
@@ -58,7 +46,6 @@ class Users(APIView):
             context={"request": request},
         )
         return Response(serializer.data)
-
     # 유저 정보 update
     def put(self, request):
         user = request.user
@@ -67,25 +54,19 @@ class Users(APIView):
             data=request.data,
             partial=True,
         )
-
         if serializer.is_valid():
             user = serializer.save()
             serializer = TinyUserSerializers(user)
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
-
-
-
 class Admin(APIView):
-    #permission_classes = [IsAuthenticated]
-
+    
     # 관리자 정보 조회
     def get(self, request):
         user = request.user
-        serializer = TinyUserSerializers(user)
+        serializer = PrivateUserSerializer(user)
         return Response(serializer.data)
-
     # 관리자 정보 update
     def put(self, request):
         user = request.user
@@ -94,18 +75,14 @@ class Admin(APIView):
             data=request.data,
             partial=True,
         )
-
         if serializer.is_valid():
             user = serializer.save()
             serializer = PrivateUserSerializer(user)
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
-
-
 class PublicUser(APIView):
-    #permission_classes = [IsAuthenticated]
-
+    # permission_classes = [IsAuthenticated]
     def get(self, request, username):
         try:
             user = User.objects.get(username=username)
@@ -113,7 +90,6 @@ class PublicUser(APIView):
             raise NotFound()
         serializer = PrivateUserSerializer(user)
         return Response(serializer.data)
-
     def put(self, request, username):
         user = request.user
         serializer = PrivateUserSerializer(
@@ -127,24 +103,18 @@ class PublicUser(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
-
-
 class UserDetail(APIView):
-    #permission_classes = [IsAuthenticated]
-
+    # permission_classes = [IsAuthenticated]
     # 유저 정보 조회
     def get_object(self, pk):
         try:
             return User.objects.get(pk=pk)
         except User.DoesNotExist:
             raise NotFound
-
     def get(self, request, pk):
         user = self.get_object(pk)
         serializer = UserDetailSerializer(user)
-
         return Response(serializer.data)
-
     # 유저 정보 update
     def put(self, request, pk):
         user = self.get_object(pk)
@@ -153,102 +123,151 @@ class UserDetail(APIView):
             data=request.data,
             partial=True,
         )
-
         if serializer.is_valid():
             user = serializer.save()
             serializer = UserDetailSerializer(user)
             return Response(serializer.data)
         else:
             return Response({"detail": serializer.errors})
-
     def delete(self, request, pk):
         user = self.get_object(pk)
         user.delete()
         return Response(status=status.HTTP_200_OK)
-
-
-
 class ChangePassword(APIView):
-    #permission_classes = [IsAuthenticated]
-
+    # permission_classes = [IsAuthenticated]
     # 유저 비번 update
     def put(self, request):
         user = request.user
-
         old_password = request.data.get("old_password")
         new_password = request.data.get("new_password")
-
         if not old_password or not new_password:
             raise ParseError
-
         if user.check_password(old_password):
             user.set_password(new_password)
             user.save()
             return Response(status=status.HTTP_200_OK)
-
         else:
             raise ParseError
-
-
-class Login(APIView):
-    def post(self, request):
         
+class Login(APIView):#관리자인지 아닌지 정보도 같이 전송할 것 
+    def post(self, request,  format=None):
+       
         email = request.data.get("email")
         password = request.data.get("password")
-        
+        user = User.objects.filter(email=email).first()
+        print("user", user.email)
+        print("password", password)
+
         if not email or not password:
             raise ParseError("잘못된 정보를 입력하였습니다.")
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return Response({"error": "로그인 실패"})
         
-        username = user.username
+        if user is not None:
+             if user.email == email:
+                user = authenticate(
+                    request, 
+                    username=user.email, 
+                    password=password
+                    )
+                if user is not None:
+                    login(request, user)
+                    #is_admin = user.is_staff
+                    return Response({'ok': 'Welcome'}, status=status.HTTP_200_OK)
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
         # 로그인 시 필요조건 (email, password)
-        user = authenticate(
-            request,
-            username=username,
-            password=password,
-        )
-        if user:
-            login(request, user)
-            return Response(status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
+      
+        # user = authenticate(
+        #     request,
+        #     email=email,
+        #     password=password,
+        # )
+        # print("email", email)
+        # print("password", password)
+        # if user:
+        #     login(request, user)
+        #     return Response(status=status.HTTP_200_OK)
+        # else:
+        #     return Response(status=status.HTTP_403_FORBIDDEN)
 class Logout(APIView):
-     def post(self, request):
+    def post(self, request):
         logout(request)
         return Response(status=status.HTTP_200_OK)
 
 
-# #.env 설정
 
-# import jwt
-# from environ import Env
-# from django.conf import settings
 
-# # jwtLogin
-# class Login(APIView):
-#     def post(self, request):
-#         username = request.data.get("username")
-#         password = request.data.get("password")
 
-#         if not username or not password:
-#             raise ParseError
+class AllReport(APIView): #schedule 제보하기  :: GET(user가 제보한 내용 ), POST(제보하기), PUT(제보 수정하기), DELETE(제보 삭제)d
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound 
+    def get(self, request):
+        
+        all_reports = Report.objects.all()#user가 작성한 것만 필터링 
+        serializer = ReportDetailSerializer(all_reports, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+       
+        serializer = ReportDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            report=serializer.save(
+                owner=request.user
+            ##whoes:; add (수정 필요)
+                )
+            serializer = ReportSerializer(report)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+   
+        
+    
+    
+"""class ReportDetail(APIView):
 
-#         user = authenticate(
-#             request,
-#             username=username,
-#             password=password,
-#         )
+    def get_report(self, pk):
+        try:
+            return Report.objects.get(pk=pk)
+        except Report.DoesNotExist:
+            raise NotFound    
 
-#         if user:
-#             token = jwt.encode(
-#                 {"id": user.id, "username": user.username},
-#                 settings.env("SECRET_KEY"),
-#                 algorithm="HS256",
-#             )
-#             print(token)
-#             return Response({"token": token})
-# from django.contrib.auth import logout
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound    
+        
+    def get(self, request, pk, report_pk):(수정 필요)
+        reports = self.get_report(report_pk)
+        if reports.owner == self.get_report(pk):
+            return Response(ReportSerializer(reports).data)
+        else:
+            raise NotFound
+
+
+    def put(self, request, pk, report_pk):
+        user = self.get_object(pk)
+        try:
+            report = Report.objects.get(pk=report_pk, owner=user)
+        except Report.DoesNotExist:
+            raise NotFound
+
+        serializer = ReportSerializer(report, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk, report_pk):
+        reports = self.get_report(report_pk)
+
+        if reports.user.pk != request.user.pk:
+            raise PermissionDenied
+
+        reports.delete()
+
+        return Response(status=204)
+"""
+
+        

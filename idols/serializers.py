@@ -9,16 +9,18 @@ class IdolsListSerializer(ModelSerializer):
         model = Idol
         fields = ("pk", "idol_name", "idol_group","idol_solo", "idol_profile", )
 
+
 class ScheduleSerializer(ModelSerializer):
-    ScheduleType = CategorySerializer()
+    ScheduleType = CategorySerializer(read_only=True)
     participant = IdolsListSerializer(many=True, read_only=True)
     
-    when=serializers.DateTimeField()
-
+    when=serializers.DateTimeField(read_only=True)
+    
     class Meta:
         model = Schedule
         fields = (
             "pk",
+            
             "ScheduleTitle",
             "ScheduleType",
             "location",
@@ -26,7 +28,8 @@ class ScheduleSerializer(ModelSerializer):
             "description",
             "participant",
         )
-    
+
+        
 
 
 class IdolDetailSerializer(ModelSerializer):
@@ -41,5 +44,8 @@ class IdolDetailSerializer(ModelSerializer):
 
    
 
-
+class IdolSerializer(ModelSerializer):
+    class Meta:
+        model=Idol
+        fields=("idol_name",)
             
