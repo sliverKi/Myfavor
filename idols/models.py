@@ -35,7 +35,7 @@ class Idol(models.Model):
         choices=SoloChoices.choices,
     )
 
-    idol_name = models.CharField(max_length=7)
+    idol_name = models.CharField(max_length=7, unique=True)
     idol_profile = models.URLField(
         max_length=10000, 
         blank=True, 
@@ -92,7 +92,7 @@ class Schedule(CommonModel):
         related_name="schedules",
     )
     
-    description = models.CharField(
+    ScheduleContent = models.CharField(
         max_length=150,
     )
     when=models.DateTimeField(default=timezone.now())

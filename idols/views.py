@@ -21,20 +21,13 @@ class Idols(APIView):#idol-list
         
         if not request.user.is_admin: #관리자 아닌 경우 
             raise PermissionDenied
-
         serializer = IdolDetailSerializer(data=request.data)
+        if serializer.is_valid():# 유효성 체크
+            idol = serializer.save()
+            return Response(IdolsListSerializer(idol).data)
         
-        #idol_name, created=Idol.objects.get_or_create(idol_name=idol_name)
-        
-        if created:
-            raise ParseError("이미 존재하는 아이돌 입니다.")
         else:
-            if serializer.is_valid():# 유효성 체크 
-                idol = serializer.save()
-                return Response(IdolsListSerializer(idol).data)
-            
-            else:
-                return Response(serializer.errors)
+            return Response(serializer.errors)
 
 
 class IdolDetail(APIView): #특정 idol-info 
@@ -103,8 +96,25 @@ class IdolSchedule(APIView):
         )
         return Response(serializer.data)
 
-    def post(self, request,pk):
-        pass
+    
+    def post(self, request,pk):#error 수정 필요 
+        
+        print("post start")
+        if not request.user.is_admin:
+            raise PermissionDenied
+        else:
+            idol = self.get_object(pk)
+            serializer = ScheduleSerializer(
+                data=request.data,
+                context={"idol":idol},
+            )
+            if serializer.is_valid():
+                schedule = serializer.save()
+                return Response(ScheduleSerializer(schedule).data)
+            else:
+                return Response(serializer.errors)
+
+
 
 
 

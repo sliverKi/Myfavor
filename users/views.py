@@ -154,24 +154,17 @@ class Login(APIView):#관리자인지 아닌지 정보도 같이 전송할 것
        
         email = request.data.get("email")
         password = request.data.get("password")
-        user = User.objects.filter(email=email).first()
-        print("user", user.email)
-        print("password", password)
-
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise NotFound            
+        # print("user", user.email)
+#{"username":"test@gmail.com", "password": "test123@E"}
         if not email or not password:
             raise ParseError("잘못된 정보를 입력하였습니다.")
-        
-        if user is not None:
-             if user.email == email:
-                user = authenticate(
-                    request, 
-                    username=user.email, 
-                    password=password
-                    )
-                if user is not None:
-                    login(request, user)
-                    #is_admin = user.is_staff
-                    return Response({'ok': 'Welcome'}, status=status.HTTP_200_OK)
+        if user.check_password(password):
+            login(request, user)
+            return Response({'ok': 'Welcome'}, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
         # 로그인 시 필요조건 (email, password)
       
@@ -197,7 +190,8 @@ class Logout(APIView):
 
 
 class AllReport(APIView): #schedule 제보하기  :: GET(user가 제보한 내용 ), POST(제보하기), PUT(제보 수정하기), DELETE(제보 삭제)d
-    def get_object(self, pk):
+    def get_object(self, pk): ##put 로직 추가 delete 할 필요 없음 
+        
         try:
             return User.objects.get(pk=pk)
         except User.DoesNotExist:

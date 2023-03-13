@@ -25,7 +25,7 @@ class ScheduleSerializer(ModelSerializer):
             "ScheduleType",
             "location",
             "when",
-            "description",
+            "ScheduleContent",
             "participant",
         )
 
@@ -41,6 +41,23 @@ class IdolDetailSerializer(ModelSerializer):
     class Meta:
         model = Idol
         fields = "__all__"
+    
+    def validate(self, attrs):
+        idol_gender=attrs.get('idol_gender')
+        idol_solo=attrs.get('idol_solo')
+        idol_group=attrs.get('idol_group')
+
+        if idol_gender=="Man":
+            if idol_solo=="GirlSolo" or idol_group=="GirlGroup":
+                raise ParseError("남자인 아이돌은 여성 항목을 선택할 수 없습니다.")
+        else:
+            if idol_solo=="BoySolo" or idol_group=="BoyGroup":
+                raise ParseError("여자인 아이돌은 남성 항목을 선택할 수 없습니다.")
+        return attrs    
+
+
+
+
 
    
 

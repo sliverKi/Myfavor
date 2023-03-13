@@ -31,6 +31,7 @@ class User(AbstractUser):
         unique=True,
         error_messages={"unique": "이미 사용중인 이메일입니다."},
     )
+    
     profileImg = models.URLField(blank=True, null=True)
 
     age = models.PositiveIntegerField(default=0)
