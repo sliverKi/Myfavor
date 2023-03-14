@@ -1,9 +1,10 @@
-from django.utils import timezone
+
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 from .models import Idol, Schedule
 from categories.serializers import CategorySerializer
+
 class IdolsListSerializer(ModelSerializer):
     class Meta:
         model = Idol
@@ -56,10 +57,14 @@ class IdolDetailSerializer(ModelSerializer):
         return attrs    
 
 
+    
 
 
 
-   
+
+
+
+
 
 class IdolSerializer(ModelSerializer):
     class Meta:

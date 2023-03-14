@@ -7,46 +7,13 @@ from rest_framework import serializers
 
 # 신규 유저 가입 시 확인절차
 
-from .models import User, NewUser, Report
+from .models import User, Report
 
 from idols.models import Idol
 from idols.serializers import IdolSerializer 
 
 # 신규 유저 가입 시 확인절차
-class UserCreateSerializer(serializers.ModelSerializer):
-    # password = serializers.CharField(write_only=True)
-    # age = serializers.SerializerMethodField()
-    # def validate_password(self, password):  # 비밀번호 체크
-    #     password_regex = (
-    #         r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$"
-    #     )
-    #     if not re.match(password_regex, password):
-    #         raise ParseError("비밀번호는 8-16자 영어 대/소문자, 숫자, 특수문자(@$!%*#?&)가 포함되어야 합니다.")
-    # def validate_age(self, age):  # 나이 체크
-    #     if age:
-    #         if age <= 14:
-    #             raise ParseError("15세부터 가입이 가능합니다.")
-    #     else:
-    #         raise ParseError("나이를 입력해 주세요.")
-    class Meta:
-        model = NewUser
-        fields = ("username", "email", "age", "password", "pick")
-class NewUserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    def create(self, validated_data):
-            password = validated_data.get("password")
-            user = super().create(validated_data)
-            user.set_password(password)
-            user.save()
-            return user
-    class Meta:
-        model = NewUser
-        field = (
-            "username",
-            "email",
-            "password",
-            "pick",
-        )
+
 class TinyUserSerializers(serializers.ModelSerializer):  # simple user-info
     def get_pick(self, user, age):
         request = self.context["request"]
@@ -124,4 +91,23 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model=Report
         fields="__all__"
+
+
+    def validate_whoes(self, value):
+        
+        if not value:
+            raise ParseError("제보 대상을 알려 주세요")
+        if not isinstance(value, list):
+            if value:
+                raise ParseError("who_pk must be a list")
+            else:
+                raise ParseError("whoes report? Who should be required. not null")
+            
+        # if not value:
+        #     raise serializers.ValidationError("참여자를 선택해주세요.")
+        # for idol in value:
+        #     if idol.pick != self.context['request'].user.pick:
+        #         raise serializers.ValidationError("참여자는 본인의 아이돌만 선택 가능합니다.")
+        return value
+    
     

@@ -1,4 +1,4 @@
-import re
+
 from django.shortcuts import render
 from django.conf import settings
 from django.db import transaction
@@ -7,8 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -150,36 +149,25 @@ class ChangePassword(APIView):
             raise ParseError
         
 class Login(APIView):#관리자인지 아닌지 정보도 같이 전송할 것 
+    #{"email":"test@gmail.com", "password": "test123@E"}
     def post(self, request,  format=None):
        
         email = request.data.get("email")
         password = request.data.get("password")
+        
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise NotFound            
-        # print("user", user.email)
-#{"username":"test@gmail.com", "password": "test123@E"}
+            raise NotFound     
+               
         if not email or not password:
             raise ParseError("잘못된 정보를 입력하였습니다.")
-        if user.check_password(password):
+        
+        if user.check_password(password):           
             login(request, user)
             return Response({'ok': 'Welcome'}, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
-        # 로그인 시 필요조건 (email, password)
-      
-        # user = authenticate(
-        #     request,
-        #     email=email,
-        #     password=password,
-        # )
-        # print("email", email)
-        # print("password", password)
-        # if user:
-        #     login(request, user)
-        #     return Response(status=status.HTTP_200_OK)
-        # else:
-        #     return Response(status=status.HTTP_403_FORBIDDEN)
+        
 class Logout(APIView):
     def post(self, request):
         logout(request)
@@ -189,8 +177,8 @@ class Logout(APIView):
 
 
 
-class AllReport(APIView): #schedule 제보하기  :: GET(user가 제보한 내용 ), POST(제보하기), PUT(제보 수정하기), DELETE(제보 삭제)d
-    def get_object(self, pk): ##put 로직 추가 delete 할 필요 없음 
+class AllReport(APIView): #schedule 제보하기  :: OK
+    def get_object(self, pk):  
         
         try:
             return User.objects.get(pk=pk)
@@ -198,26 +186,53 @@ class AllReport(APIView): #schedule 제보하기  :: GET(user가 제보한 내�
             raise NotFound 
     def get(self, request):
         
-        all_reports = Report.objects.all()#user가 작성한 것만 필터링 
+        all_reports = Report.objects.all() 
         serializer = ReportDetailSerializer(all_reports, many=True)
         return Response(serializer.data)
     
     def post(self, request):
-       
+
         serializer = ReportDetailSerializer(data=request.data)
         if serializer.is_valid():
-            report=serializer.save(
-                owner=request.user
-            ##whoes:; add (수정 필요)
+            with transaction.atomic():
+                report=serializer.save(
+                    owner=request.user,
+                    title=serializer.validated_data['title'],
+                    location=serializer.validated_data['location'],
+                    time=serializer.validated_data['time']
                 )
-            serializer = ReportSerializer(report)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-   
-        
-    
-    
+                whoes=request.data.get("whoes")
+                print("owner", request.user.pick)
+                print("whoes", whoes)
+                if not whoes:
+                    raise ParseError("제보 대상을 알려 주세요")
+                if len(set(whoes))!=1:
+                    raise ParseError("한명의 아이돌만 제보가 가능합니다.")
+                if not isinstance(whoes, list):
+                    if whoes:
+                        raise ParseError("who_pk must be a list")
+                    else:
+                        raise ParseError("whoes report? Who should be required. not null")
+                #if request.user.pick not in whoes:
+                #    raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
+            
+                #for idol_pk in whoes:
+                try:
+                    idol=Idol.objects.get(pk=whoes[0])
+                    print("idol_pk", idol)
+                    report.whoes.add(idol)
+                     
+                except Idol.DoesNotExist:
+                    raise ParseError("선택하신 아이돌이 없어요")
+                
+                serializer=ReportDetailSerializer(
+                    report,
+                    context={"request": request},
+                ) 
+                return Response(serializer.data, status=HTTP_201_CREATED)  
+        else:         
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
 """class ReportDetail(APIView):
 
     def get_report(self, pk):

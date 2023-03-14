@@ -57,36 +57,6 @@ class User(AbstractUser):
     class Meta:
         verbose_name_plural = "Our_Users"
 
-class NewUser(BaseUserManager):
-    def create_user(self, email, username, age, password, pick):
-        if not email:
-            raise ValueError("이메일을 입력하세요")
-        if not username:
-            raise ValueError("이름을 입력하세요")
-        if not password:
-            raise ValueError("비밀번호를 입력하세요")
-        if not pick:
-            raise ValueError("최애를 입력하세요")
-        if not age:
-            raise ValueError("나이를 입력하세요")
-        user = self.model(email=self.normalize_email(email), username=username)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-    def __str__(self):
-        return self.username
-    
-    def __str__(self):
-        return self.email
-    
-    def __str__(self):
-        return self.pick
-    class Meta:
-        fields = "__all__"
-
-
-
-
 
 class Report(Category):
 
@@ -106,7 +76,7 @@ class Report(Category):
         blank=True,
         related_name="report",
     )
-
+   
     def str(self):
         return self.title
 

@@ -35,7 +35,7 @@ class Idol(models.Model):
         choices=SoloChoices.choices,
     )
 
-    idol_name = models.CharField(max_length=7, unique=True)
+    idol_name = models.CharField(max_length=7)
     idol_profile = models.URLField(
         max_length=10000, 
         blank=True, 
