@@ -16,8 +16,9 @@ urlpatterns = [
     path("info/<int:pk>", views.UserDetail.as_view()),
     
     path("reports/", views.AllReport.as_view()),# user가 schedule을 제보
+    path("reports/<int:pk>", views.ReportDetail.as_view()),# user가 schedule을 제보
     
 
-    path("login", views.Login.as_view()),
-    path("logout", views.Logout.as_view()),
+    path("login/", views.Login.as_view()),
+    path("logout/", views.Logout.as_view()),
 ]

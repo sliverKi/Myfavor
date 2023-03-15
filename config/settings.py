@@ -147,8 +147,8 @@ MEDIA_URL = "user-uploads/"
 # react 와 연결시켜주기위한코드
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000"]
-CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000"]
+CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
 
 
 #SESSION_COOKIE_AGE=1200 #유지 시간 : 20분  세션 정보 갱신 

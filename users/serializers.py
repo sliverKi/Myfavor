@@ -1,5 +1,4 @@
 
-from datetime import date
 import re
 
 from rest_framework.exceptions import ParseError, ValidationError
@@ -76,38 +75,26 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "name",
+            "age",
+            "is_superuser",
+            "is_admin",
+            "is_staff",
+            "user_permissions",
+            "last_login",
+            "is_active",
+            "date_joined"
         )
 
 
-class ReportSerializer(serializers.ModelSerializer):
-    class  Meta:
-        model= Report
-        fields="__all__"
-
-
 class ReportDetailSerializer(serializers.ModelSerializer):
-    owner=TinyUserSerializers(read_only=True) #작성자
-    whoes=IdolSerializer(many=True, read_only=True)#참여자
+    owner=TinyUserSerializers(read_only=True) 
+    whoes=IdolSerializer(many=True, read_only=True)
+    
     class Meta:
         model=Report
         fields="__all__"
+     
+    
 
-
-    def validate_whoes(self, value):
-        
-        if not value:
-            raise ParseError("제보 대상을 알려 주세요")
-        if not isinstance(value, list):
-            if value:
-                raise ParseError("who_pk must be a list")
-            else:
-                raise ParseError("whoes report? Who should be required. not null")
-            
-        # if not value:
-        #     raise serializers.ValidationError("참여자를 선택해주세요.")
-        # for idol in value:
-        #     if idol.pick != self.context['request'].user.pick:
-        #         raise serializers.ValidationError("참여자는 본인의 아이돌만 선택 가능합니다.")
-        return value
     
     
