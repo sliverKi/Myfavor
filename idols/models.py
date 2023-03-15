@@ -1,7 +1,9 @@
 from django.db import models
 from django.utils import timezone
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 from common.models import CommonModel
-
+import datetime
 # from times.models import TimeModel
 
 
@@ -34,9 +36,14 @@ class Idol(models.Model):
     )
 
     idol_name = models.CharField(max_length=7)
-    idol_profile = models.URLField(max_length=10000, blank=True, null=True)
+    idol_profile = models.URLField(
+        max_length=10000, 
+        blank=True, 
+        null=True,
+        #validators=[URLValidator( "유효한 URL을 입력하세요. ")]
+    )
 
-    idol_anniv = models.DateField()
+    idol_anniv = models.DateField(default=datetime.date.today)
     idol_birthday = models.DateField()
 
     idol_gender = models.CharField(
@@ -85,7 +92,7 @@ class Schedule(CommonModel):
         related_name="schedules",
     )
     
-    description = models.CharField(
+    ScheduleContent = models.CharField(
         max_length=150,
     )
     when=models.DateTimeField(default=timezone.now())

@@ -1,3 +1,7 @@
+import jwt
+import bcrypt
+import json
+
 from django.shortcuts import render
 from django.conf import settings
 from django.db import transaction
@@ -6,8 +10,12 @@ from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+)
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -15,63 +23,35 @@ from rest_framework.exceptions import (
     PermissionDenied,
 )
 from django.core.exceptions import ValidationError
-from .models import User
+from .models import User, Report
 from .serializers import (
-    UserCreateSerializer,
     TinyUserSerializers,
     PrivateUserSerializer,
     UserDetailSerializer,
+    
+    ReportDetailSerializer,
 )
-
+from idols.serializers import ScheduleSerializer
+from idols.models import Idol
 
 # 신규 유저 추가
-class Register(APIView):
-    # def validate(self, password):
-    #     if len(password) < 8 or len(password) > 16:
-    #         return ParseError("비밀번호는 8자 이상 16자 이하여야합니다.")
-    #     if (
-    #         not contains_uppercase_letter(password)
-    #         or not contains_lowercase_letter(password)
-    #         or not contains_number_letter(password)
-    #     ):
-
-    #         raise ValidationError("비밀번호는 영어 대/소문자와 숫자의 조합이여야합니다.")
-
+class Users(APIView):  # OK
     def post(self, request):
-        if request.data["age"] <= 15:
-            raise ParseError("15세부터 가입이 가능합니다.")
-
+        password = request.data.get("password")
+        serializer = PrivateUserSerializer(data=request.data)
+        print(password)
+        
+        if serializer.is_valid():
+            user = serializer.save()
+            user.set_password(password)
+            user.save()
+            serializer = PrivateUserSerializer(user)
+            return Response(serializer.data)
         else:
-            password = request.data.get("password")
-            # if self.validate(password):
-            #     return ParseError("비밀번호 유효성 체크 해야함 ")
-            if not password:
-                raise ParseError("비밀번호를 입력해 주세요.")
-
-            serializer = UserCreateSerializer(data=request.data)
-            # serializer.save()
-
-            if serializer.is_valid():
-                user = serializer.save()
-
-                user.set_password(password)
-                # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
-                user.save()
-
-                serializer = UserCreateSerializer(user)
-                return Response(serializer.data)
-            else:
-                return Response(serializer.errors)
+            return Response(serializer.errors)
 
 
-# 간단하게 보는 모든 유저 정보(TinyUser / all)
-# get
-# post
-# put
-# delete
-class Users(APIView):
-    permission_classes = [IsAuthenticated]
-
+class AllUsers(APIView):
     def get(self, request):  # 조회
         all_users = User.objects.all()  # 모든 Users 불러와
         serializer = TinyUserSerializers(
@@ -81,261 +61,225 @@ class Users(APIView):
         )
         return Response(serializer.data)
 
-    # 신규 유저 추가
-    # def post(self, request):
-    #     password = request.data.get("password")
-    #     if not password:
-    #         raise ParseError
-
-    #     serializer = TinyUserSerializers(data=request.data)
-
-    #     if serializer.is_valid():
-    #         user = serializer.save()
-
-    #         user.set_password(password)
-    #         # set_password : 해쉬화 된 비밀번호 / #password : 실제 비밀번호
-    #         user.save()
-
-    #         serializer = TinyUserSerializers(user)
-    #         return Response(serializer.data)
-    #     else:
-    #         return Response(serializer.errors)
-
     # 유저 정보 update
     def put(self, request):
         user = request.user
+        # pick = "idols.Idol"
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+        
+        if not old_password or not new_password:
+            raise ParseError
         serializer = TinyUserSerializers(
             user,
             data=request.data,
             partial=True,
         )
-
         if serializer.is_valid():
             user = serializer.save()
+            if user.check_password(old_password):
+                user.set_password(new_password)
+                user.save()
+            else:
+                raise ParseError
             serializer = TinyUserSerializers(user)
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
 
 
-# 관리자 정보
-# get
-# post
-# put
-# delete
-class Admin(APIView):
-    permission_classes = [IsAuthenticated]
-
-    # 관리자 정보 조회
-    def get(self, request):
-        user = request.user
-        serializer = TinyUserSerializers(user)
-        return Response(serializer.data)
-
-    # 관리자 정보 update
-    def put(self, request):
-        user = request.user
-        serializer = PrivateUserSerializer(
-            user,
-            data=request.data,
-            partial=True,
-        )
-
-        if serializer.is_valid():
-            user = serializer.save()
-            serializer = PrivateUserSerializer(user)
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
-
-
-# @username 으로 검색
-# get - o
-# post
-# put - o
-# delete
+# nickname 으로 조회 ( 수정 및 삭제 가능 ) #serializer 변경 (사용자가 보기 위함)
+## 수정 필요
 class PublicUser(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
-    def get(self, request, username):
+    def get(self, request, nickname):
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(nickname=nickname)
         except User.DoesNotExist:
             raise NotFound()
         serializer = PrivateUserSerializer(user)
         return Response(serializer.data)
 
-    # post 가 필요할까..?
-    # def post(self, request, username):
-    #     serializer = PrivateUserSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         user = serializer.save()
-    #         serializer = PrivateUserSerializer(user)
-    #         return Response(serializer.data)
-    #     else:
-    #         return Response(serializer.errors)
-
-    def put(self, request, username):
+    def put(self, request, nickname, pick):
         user = request.user
-        serializer = PrivateUserSerializer(
-            user,
-            data=request.data,
-            partial=True,
-        )
-        if serializer.is_valid():
-            serializer.save()
-            serializer = PrivateUserSerializer(user)
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
-
-
-# pk로 검색 / user의 자세한 정보
-# get - o
-# post- ing
-# put - o
-# delete - ing
-class UserDetail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    # 유저 정보 조회
-    def get_object(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise NotFound
-
-    def get(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserDetailSerializer(user)
-
-        return Response(serializer.data)
-
-    # 유저 정보 update
-    def put(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserDetailSerializer(
-            user,
-            data=request.data,
-            partial=True,
-        )
-
-        if serializer.is_valid():
-            user = serializer.save()
-            serializer = UserDetailSerializer(user)
-            return Response(serializer.data)
-        else:
-            return Response({"detail": serializer.errors})
-
-    def delete(self, request, pk):
-        user = self.get_object(pk)
-        user.delete()
-        return Response(status=status.HTTP_200_OK)
-
-
-# 비밀번호 변경
-# get - ?
-# post - ing
-# put - o
-# delete - ?
-class ChangePassword(APIView):
-    permission_classes = [IsAuthenticated]
-
-    # 유저 비번 update
-    def put(self, request):
-        user = request.user
-
+        # pick = request.pick
         old_password = request.data.get("old_password")
         new_password = request.data.get("new_password")
 
         if not old_password or not new_password:
             raise ParseError
 
+        serializer = PrivateUserSerializer(
+            user,
+            data=request.data,
+            partial=True,
+        )
+
+        if serializer.is_valid():
+            update_public = serializer.save()
+            
+            
+            if user.check_password(old_password):
+                user.set_password(new_password)
+                user = user.save()
+            else:
+                raise ParseError
+
+            serializer = TinyUserSerializers(user)
+            
+            return Response(PrivateUserSerializer(update_public).data)
+        else:
+            return Response(serializer.errors)
+        
+    def delete(self, request, nickname):
+        user = self.objects.get(nickname)
+        user.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
+
+
+
+# pk로 조회 ( 수정 및 삭제 가능 ) / admin 조회용 (모든 정보 나타내기)
+## 수정 필요 
+class UserDetail(APIView):
+    # permission_classes = [IsAuthenticated]
+    # 유저 정보 조회
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound()
+        serializer = PrivateUserSerializer(user)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+
+        if not old_password or not new_password:
+            raise ParseError
+
+        serializer = PrivateUserSerializer(
+            user,
+            data=request.data,
+            partial=True,
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            if user.check_password(old_password):
+                user.set_password(new_password)
+                user = user.save()
+            else:
+                raise ParseError
+            serializer = TinyUserSerializers(user)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+
+class ChangePassword(APIView):
+    # permission_classes = [IsAuthenticated]
+    # 유저 비번 update
+    def put(self, request):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+        if not old_password or not new_password:
+            raise ParseError
         if user.check_password(old_password):
             user.set_password(new_password)
             user.save()
             return Response(status=status.HTTP_200_OK)
-
         else:
             raise ParseError
 
 
-# 로그인
-# get - ?
-# post - o
-# put - ?
-# delete - ?
-class Login(APIView):
-    def post(self, request):
-        username = request.data.get("username")
-        # email = request.data.get("email")
+class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 것
+    # {"email":"test@gmail.com", "password": "test123@E"}
+    def post(self, request, format=None):
+
+        email = request.data.get("email")
         password = request.data.get("password")
-        # print(email)
-        if not username or not password:
-            raise ParseError()
 
-        # 로그인 시 필요조건 (email, password)
-        user = authenticate(
-            request,
-            username=username,
-            password=password,
-        )
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise NotFound
 
-        if user:
+        if not email or not password:
+            raise ParseError("잘못된 정보를 입력하였습니다.")
+
+        if user.check_password(password):
             login(request, user)
-            return Response({"success": "로그인 성공!"})
-        else:
-            return Response({"error": "로그인 실패"})
-
-
-# # 로그아웃
-# # get - ?
-# # post - o
-# # put - ?
-# # delete - ?
-# class Logout(APIView):
-#     permission_classes = [IsAuthenticated]  # 로그인 한 유저만 허용
-
-#     def post(self, request):
-#         logout(request)
-#         return Response({"ok": "See You Again!"})
-
-
-# #.env 설정
-
-# import jwt
-# from environ import Env
-# from django.conf import settings
-
-# # jwtLogin
-# class Login(APIView):
-#     def post(self, request):
-#         username = request.data.get("username")
-#         password = request.data.get("password")
-
-#         if not username or not password:
-#             raise ParseError
-
-#         user = authenticate(
-#             request,
-#             username=username,
-#             password=password,
-#         )
-
-#         if user:
-#             token = jwt.encode(
-#                 {"id": user.id, "username": user.username},
-#                 settings.env("SECRET_KEY"),
-#                 algorithm="HS256",
-#             )
-#             print(token)
-#             return Response({"token": token})
-
-
-from django.contrib.auth import logout
+            return Response({"ok": "Welcome"}, status=status.HTTP_200_OK)
+        return Response(
+            {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class Logout(APIView):
     def post(self, request):
         logout(request)
         return Response(status=status.HTTP_200_OK)
+
+
+class AllReport(APIView):  # schedule 제보하기  :: OK
+    def get_object(self, pk):
+
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+
+    def get(self, request):
+
+        all_reports = Report.objects.all()
+        serializer = ReportDetailSerializer(all_reports, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+
+        serializer = ReportDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            with transaction.atomic():
+                report = serializer.save(
+                    owner=request.user,
+                    title=serializer.validated_data["title"],
+                    location=serializer.validated_data["location"],
+                    time=serializer.validated_data["time"],
+                )
+                whoes = request.data.get("whoes")
+                print("owner", request.user.pick)
+                print("whoes", whoes)
+                if not whoes:
+                    raise ParseError("제보 대상을 알려 주세요")
+                if len(set(whoes)) != 1:
+                    raise ParseError("한명의 아이돌만 제보가 가능합니다.")
+                if not isinstance(whoes, list):
+                    if whoes:
+                        raise ParseError("who_pk must be a list")
+                    else:
+                        raise ParseError(
+                            "whoes report? Who should be required. not null"
+                        )
+                # if request.user.pick not in whoes:
+                #    raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
+
+                # for idol_pk in whoes:
+                try:
+                    idol = Idol.objects.get(pk=whoes[0])
+                    print("idol_pk", idol)
+                    report.whoes.add(idol)
+
+                except Idol.DoesNotExist:
+                    raise ParseError("선택하신 아이돌이 없어요")
+
+                serializer = ReportDetailSerializer(
+                    report,
+                    context={"request": request},
+                )
+                return Response(serializer.data, status=HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)

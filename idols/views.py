@@ -20,15 +20,14 @@ class Idols(APIView):#idol-list
     def post(self, request):  #아이돌 리스트 생성 -> 관리자만 허용  (OK)
         
         if not request.user.is_admin: #관리자 아닌 경우 
-            return PermissionDenied
-
-        if request.user.is_admin: # 관리자인 경우 
-            serializer = IdolDetailSerializer(data=request.data)
-            if serializer.is_valid():# 유효성 체크 
-                idol = serializer.save()
-                return Response(IdolsListSerializer(idol).data)
-            else:
-                return Response(serializer.errors)
+            raise PermissionDenied
+        serializer = IdolDetailSerializer(data=request.data)
+        if serializer.is_valid():# 유효성 체크
+            idol = serializer.save()
+            return Response(IdolsListSerializer(idol).data)
+        
+        else:
+            return Response(serializer.errors)
 
 
 class IdolDetail(APIView): #특정 idol-info 
@@ -46,7 +45,7 @@ class IdolDetail(APIView): #특정 idol-info
     def put(self, request, pk): #idol-info 수정 ~> 관리자만 가능 (OK)
 
         if not request.user.is_admin:
-            return PermissionDenied
+            raise PermissionDenied
         
         idol=self.get_object(pk)
         if request.user.is_admin:
@@ -60,14 +59,14 @@ class IdolDetail(APIView): #특정 idol-info
             idol_schedules=request.data.get("idol_schedules")
             if idol_schedules:
                 if not isinstance(idol_schedules, list):
-                    raise ParseError("Invalid amenities")
+                    raise ParseError("Invalid schedules")
                 idol.idol_schedules.clear()
                 for idol_schedule_pk in idol_schedules: 
                     try:
                         schedule = Idol.objects.get(pk=idol_schedule_pk)
                         idol.idol_schedules.add(schedule)
                     except Schedule.DoesNotExist:
-                        raise ParseError("Amenity not Found")
+                        raise ParseError("Schedule not Found")
             updated_idol_schedules = serializer.save()
             return Response(IdolDetailSerializer( updated_idol_schedules).data)
         else:
@@ -97,6 +96,27 @@ class IdolSchedule(APIView):
         )
         return Response(serializer.data)
 
+    
+    def post(self, request,pk):#error 수정 필요 
+        
+        print("post start")
+        if not request.user.is_admin:
+            raise PermissionDenied
+        else:
+            idol = self.get_object(pk)
+            serializer = ScheduleSerializer(
+                data=request.data,
+                context={"idol":idol},
+            )
+            if serializer.is_valid():
+                schedule = serializer.save()
+                return Response(ScheduleSerializer(schedule).data)
+            else:
+                return Response(serializer.errors)
+
+
+
+
 
 class Schedules(APIView): 
     def get(self, request):
@@ -105,15 +125,16 @@ class Schedules(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-
+        print("post start")
         if not request.user.is_admin:
-            return PermissionDenied
-        serializer = ScheduleSerializer(data=request.data)
-        if serializer.is_valid():
-            schedule = serializer.save()
-            return Response(ScheduleSerializer(schedule).data)
+            raise PermissionDenied
         else:
-            return Response(serializer.errors)
+            serializer = ScheduleSerializer(data=request.data)
+            if serializer.is_valid():
+                schedule = serializer.save()
+                return Response(ScheduleSerializer(schedule).data)
+            else:
+                return Response(serializer.errors)
 
 
 class ScheduleDetail(APIView):
@@ -131,7 +152,7 @@ class ScheduleDetail(APIView):
     def put(self, request, pk):
         
         if not request.user.is_admin:
-            return PermissionDenied
+            raise PermissionDenied
         
         if request.user.is_admin:
             schedule = self.get_object(pk)

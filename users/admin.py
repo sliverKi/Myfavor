@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
-from .models import User
+from .models import User, Report
 
 # Register your models here.
 @admin.register(User)
@@ -68,3 +68,17 @@ class CustomeUserAdmin(UserAdmin):
     list_display_links = ("email", "nickname", "username")
     list_filter = ("username",)
     search_fields = ("username", "nickname")
+
+
+@admin.register(Report)
+class ReportAdmin(admin.ModelAdmin):
+    list_display = (
+        "pk",
+        "type",
+        "title",
+    )
+    list_display_links = (
+        "pk",
+        "type",
+        "title",
+    )
