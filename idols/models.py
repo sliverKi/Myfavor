@@ -92,10 +92,10 @@ class Schedule(CommonModel):
         related_name="schedules",
     )
     
-    description = models.CharField(
+    ScheduleContent = models.CharField(
         max_length=150,
     )
-    when=models.DateTimeField(default=timezone.now)
+    when=models.DateTimeField(default=timezone.now())
 
     class Meta:
         verbose_name_plural = "Idol-Schedules"

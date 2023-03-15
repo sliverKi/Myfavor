@@ -4,6 +4,7 @@ from .models import UserCalendar
 
 @admin.register(UserCalendar)
 class UserCalendarAdmin(admin.ModelAdmin):
-    list_display = ("pk", "owner", "title", "created_at", "updated_at")
-    list_display_links = ("pk", "owner", "title")
-    search_fields = ("owner",)
+    list_display = ("id", "title")
+    list_display_links = ("id", "title")
+    list_filter = ("owner",)
+    search_fields = ("=owner__nickname",)
