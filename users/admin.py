@@ -69,6 +69,7 @@ class CustomeUserAdmin(UserAdmin):
     list_filter = ("username",)
     search_fields = ("username", "nickname")
 
+
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
     list_display = (
@@ -77,7 +78,7 @@ class ReportAdmin(admin.ModelAdmin):
         "title",
     )
     list_display_links = (
-       "pk",
+        "pk",
         "type",
         "title",
     )
