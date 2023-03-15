@@ -4,7 +4,7 @@ from . import views, JWTViews
 
 urlpatterns = [
     path("", views.Users.as_view()), # 신규가입
-    path("admin", views.Admin.as_view()),  # adminProfile (pk:1)
+    # path("admin", views.Admin.as_view()),  # adminProfile (pk:1)
     path("change-password", views.ChangePassword.as_view()),
     # path("signup",views.SignUp.as_view()),
     # path("signin",views.SignIn.as_view()),

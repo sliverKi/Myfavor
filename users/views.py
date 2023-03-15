@@ -28,7 +28,7 @@ from .serializers import (
     TinyUserSerializers,
     PrivateUserSerializer,
     UserDetailSerializer,
-    ReportSerializer,
+    
     ReportDetailSerializer,
 )
 from idols.serializers import ScheduleSerializer

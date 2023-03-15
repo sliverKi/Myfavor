@@ -4,7 +4,6 @@ from users.models import User
 from users.serializers import (
     TinyUserSerializers,
     PrivateUserSerializer,
-    ReportSerializer,
     ReportDetailSerializer,
 )
 
