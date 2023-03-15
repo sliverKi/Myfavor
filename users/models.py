@@ -21,7 +21,7 @@ class User(AbstractUser):
     nickname = models.CharField(
         max_length=100,
         default="",
-        unique=True,
+        # unique=True,
         validators=[MinLengthValidator(3, "닉네임은 3자 이상이어야합니다.")],
     )
     email = models.EmailField(
@@ -54,10 +54,8 @@ class User(AbstractUser):
         related_name="users",
     )
 
-
     def str(self):
         return self.name
-
 
     class Meta:
         verbose_name_plural = "Our_Users"

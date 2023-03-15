@@ -5,8 +5,8 @@ import json
 from django.shortcuts import render
 from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -18,7 +18,6 @@ from rest_framework.status import (
 )
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
     ParseError,
     PermissionDenied,
 )
@@ -82,7 +81,7 @@ class AllUsers(APIView):
             else:
                 raise ParseError
             serializer = TinyUserSerializers(user)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_200_OK)
         else:
             return Response(serializer.errors)
 
@@ -105,7 +104,6 @@ class PublicUser(APIView):
         # pick = request.pick
         old_password = request.data.get("old_password")
         new_password = request.data.get("new_password")
-
         if not old_password or not new_password:
             raise ParseError
 
@@ -219,7 +217,7 @@ class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 �
 class Logout(APIView):
     def post(self, request):
         logout(request)
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=HTTP_200_OK)
 
 
 class AllReport(APIView):  # schedule 제보하기  :: OK
@@ -241,17 +239,15 @@ class AllReport(APIView):  # schedule 제보하기  :: OK
         serializer = ReportDetailSerializer(data=request.data)
         if serializer.is_valid():
             with transaction.atomic():
+
                 report = serializer.save(
                     owner=request.user,
-                    title=serializer.validated_data["title"],
-                    location=serializer.validated_data["location"],
-                    time=serializer.validated_data["time"],
                 )
                 whoes = request.data.get("whoes")
-                print("owner", request.user.pick)
-                print("whoes", whoes)
+                if request.user.pick.pk not in whoes:
+                    raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
                 if not whoes:
-                    raise ParseError("제보 대상을 알려 주세요")
+                    raise ParseError("제보할 아이돌을 알려 주세요.")
                 if len(set(whoes)) != 1:
                     raise ParseError("한명의 아이돌만 제보가 가능합니다.")
                 if not isinstance(whoes, list):
@@ -261,17 +257,13 @@ class AllReport(APIView):  # schedule 제보하기  :: OK
                         raise ParseError(
                             "whoes report? Who should be required. not null"
                         )
-                # if request.user.pick not in whoes:
-                #    raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
-
-                # for idol_pk in whoes:
                 try:
                     idol = Idol.objects.get(pk=whoes[0])
                     print("idol_pk", idol)
                     report.whoes.add(idol)
 
                 except Idol.DoesNotExist:
-                    raise ParseError("선택하신 아이돌이 없어요")
+                    raise ParseError("선택하신 아이돌이 없어요.")
 
                 serializer = ReportDetailSerializer(
                     report,
@@ -280,3 +272,43 @@ class AllReport(APIView):  # schedule 제보하기  :: OK
                 return Response(serializer.data, status=HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+
+class ReportDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return Report.objects.get(pk=pk)
+        except Report.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        report = self.get_object(pk)
+        serializer = ReportDetailSerializer(report)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+
+        if not request.user.is_admin:
+            raise PermissionDenied("권한 없음")
+        else:
+            report = self.get_object(pk)
+            serializer = ReportDetailSerializer(
+                report,
+                data=request.data,
+                partial=True,
+            )
+        if serializer.is_valid():
+            updated_report = serializer.save()
+            return Response(ReportDetailSerializer(updated_report).data)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        reports = self.get_object(pk)
+
+        if not request.user.is_admin:
+            raise PermissionDenied
+
+        reports.delete()
+
+        return Response(status=HTTP_204_NO_CONTENT)

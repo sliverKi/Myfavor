@@ -1,4 +1,3 @@
-from datetime import date
 import re
 
 from rest_framework.exceptions import ParseError, ValidationError
@@ -9,7 +8,7 @@ from rest_framework import serializers
 from .models import User, Report
 
 from idols.models import Idol
-from idols.serializers import IdolSerializer,IdolsListSerializer
+from idols.serializers import IdolSerializer
 
 # 신규 유저 가입 시 확인절차
 
@@ -37,6 +36,7 @@ class PrivateUserSerializer(serializers.ModelSerializer):  # 회원가입시 이
     class Meta:
         model = User
         exclude = (
+            "password",
             "is_superuser",
             "is_staff",
             "is_active",
@@ -85,13 +85,20 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "name",
+            "age",
+            "is_superuser",
+            "is_admin",
+            "is_staff",
+            "user_permissions",
+            "last_login",
+            "is_active",
+            "date_joined",
         )
 
 
-
 class ReportDetailSerializer(serializers.ModelSerializer):
-    owner = TinyUserSerializers(read_only=True)  # 작성자
-    whoes = IdolSerializer(many=True, read_only=True)  # 참여자
+    owner = TinyUserSerializers(read_only=True)
+    whoes = IdolSerializer(many=True, read_only=True)
 
     class Meta:
         model = Report
