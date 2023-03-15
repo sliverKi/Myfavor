@@ -28,7 +28,6 @@ from .serializers import (
     TinyUserSerializers,
     PrivateUserSerializer,
     UserDetailSerializer,
-    
     ReportDetailSerializer,
 )
 from idols.serializers import ScheduleSerializer
@@ -40,7 +39,7 @@ class Users(APIView):  # OK
         password = request.data.get("password")
         serializer = PrivateUserSerializer(data=request.data)
         print(password)
-        
+
         if serializer.is_valid():
             user = serializer.save()
             user.set_password(password)
@@ -67,7 +66,7 @@ class AllUsers(APIView):
         # pick = "idols.Idol"
         old_password = request.data.get("old_password")
         new_password = request.data.get("new_password")
-        
+
         if not old_password or not new_password:
             raise ParseError
         serializer = TinyUserSerializers(
@@ -118,29 +117,27 @@ class PublicUser(APIView):
 
         if serializer.is_valid():
             update_public = serializer.save()
-            
-            
+
             if user.check_password(old_password):
                 user.set_password(new_password)
                 user = user.save()
             else:
                 raise ParseError
-
+            # commit
             serializer = TinyUserSerializers(user)
-            
+
             return Response(PrivateUserSerializer(update_public).data)
         else:
             return Response(serializer.errors)
-        
+
     def delete(self, request, nickname):
         user = self.objects.get(nickname)
         user.delete()
         return Response(status=HTTP_204_NO_CONTENT)
 
 
-
 # pk로 조회 ( 수정 및 삭제 가능 ) / admin 조회용 (모든 정보 나타내기)
-## 수정 필요 
+## 수정 필요
 class UserDetail(APIView):
     # permission_classes = [IsAuthenticated]
     # 유저 정보 조회
