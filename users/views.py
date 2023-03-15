@@ -83,7 +83,7 @@ class Admin(APIView):
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 class PublicUser(APIView):
-    # permission_classes = [IsAuthenticated]
+    
     def get(self, request, username):
         try:
             user = User.objects.get(username=username)
@@ -105,7 +105,7 @@ class PublicUser(APIView):
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 class UserDetail(APIView):
-    # permission_classes = [IsAuthenticated]
+   
     # 유저 정보 조회
     def get_object(self, pk):
         try:
@@ -135,7 +135,7 @@ class UserDetail(APIView):
         user.delete()
         return Response(status=HTTP_200_OK)
 class ChangePassword(APIView):
-    # permission_classes = [IsAuthenticated]
+    
     # 유저 비번 update
     def put(self, request):
         user = request.user
