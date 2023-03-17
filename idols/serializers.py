@@ -5,6 +5,14 @@ from rest_framework.exceptions import ParseError
 from .models import Idol, Schedule
 from categories.serializers import CategorySerializer
 
+
+
+class IdolSerializer(ModelSerializer):
+    class Meta:
+        model=Idol
+        fields=("idol_name",)
+
+
 class IdolsListSerializer(ModelSerializer):
     class Meta:
         model = Idol
@@ -13,20 +21,17 @@ class IdolsListSerializer(ModelSerializer):
 
 class ScheduleSerializer(ModelSerializer):
     ScheduleType = CategorySerializer(read_only=True)
-    participant = IdolsListSerializer(many=True, read_only=True)
-    
+    participant = IdolSerializer(many=True, read_only=True) #읽기 전용 필드 
     when=serializers.DateTimeField(read_only=True)
     
     class Meta:
         model = Schedule
         fields = (
             "pk",
-            
             "ScheduleTitle",
             "ScheduleType",
             "location",
             "when",
-            "ScheduleContent",
             "participant",
         )
 
@@ -35,9 +40,8 @@ class ScheduleSerializer(ModelSerializer):
 
 class IdolDetailSerializer(ModelSerializer):
     
-    idol_schedules = ScheduleSerializer(
-        read_only=True, many=True  # 스케줄을 필수 항목으로 인식하지 않음
-    )
+    idol_schedules = ScheduleSerializer(many=True, read_only=True)  # 스케줄을 필수 항목으로 인식하지 않음
+    
 
     class Meta:
         model = Idol
@@ -56,18 +60,3 @@ class IdolDetailSerializer(ModelSerializer):
                 raise ParseError("여자인 아이돌은 남성 항목을 선택할 수 없습니다.")
         return attrs    
 
-
-    
-
-
-
-
-
-
-
-
-class IdolSerializer(ModelSerializer):
-    class Meta:
-        model=Idol
-        fields=("idol_name",)
-            

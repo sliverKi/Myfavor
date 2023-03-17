@@ -28,6 +28,7 @@ class TinyUserSerializers(serializers.ModelSerializer):  # simple user-info
             "email",
             "profileImg",
             "pick",
+            "is_admin",
         )
 
 
@@ -36,7 +37,7 @@ class PrivateUserSerializer(serializers.ModelSerializer):  # 회원가입시 이
     class Meta:
         model = User
         exclude = (
-            "password",
+            #"password",
             "is_superuser",
             "is_staff",
             "is_active",

@@ -2,11 +2,12 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound,PermissionDenied,ParseError
-from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST,HTTP_404_NOT_FOUND
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Idol, Schedule
-from .serializers import IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer
-
+from .serializers import  IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer
+from categories.serializers import CategorySerializer
+from categories.models import Category
 # 난 복제본
 
 class Idols(APIView):#idol-list 
@@ -39,7 +40,10 @@ class IdolDetail(APIView): #특정 idol-info
 
     def get(self, request, pk): # 조회  (OK)
         idol = self.get_object(pk)
-        serializer = IdolDetailSerializer(idol)
+        serializer = IdolDetailSerializer(
+            idol,
+            context={"request": request},
+            )
         return Response(serializer.data)
     
     def put(self, request, pk): #idol-info 수정 ~> 관리자만 가능 (OK)
@@ -68,7 +72,7 @@ class IdolDetail(APIView): #특정 idol-info
                     except Schedule.DoesNotExist:
                         raise ParseError("Schedule not Found")
             updated_idol_schedules = serializer.save()
-            return Response(IdolDetailSerializer( updated_idol_schedules).data)
+            return Response(IdolDetailSerializer( updated_idol_schedules).data, status=HTTP_200_OK)
         else:
             return Response(status=HTTP_400_BAD_REQUEST)
 
@@ -79,9 +83,10 @@ class IdolDetail(APIView): #특정 idol-info
             raise PermissionDenied
         idol.delete()
         if idol.DoesNotExist: #찾는 아이돌이 없는 경우 
-            return Response(status=HTTP_204_NO_CONTENT)    
+            return Response(status=HTTP_404_NOT_FOUND)    
 
 class IdolSchedule(APIView):
+   
     def get_object(self, pk):
         try:
             return Idol.objects.get(pk=pk)
@@ -91,31 +96,73 @@ class IdolSchedule(APIView):
     def get(self, request, pk):
         idol = self.get_object(pk)
         serializer = ScheduleSerializer(
+            
             idol.idol_schedules.all(),
             many=True,
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     
     def post(self, request,pk):#error 수정 필요 
         
         print("post start")
+        serializer=ScheduleSerializer(data=request.data)
         if not request.user.is_admin:
             raise PermissionDenied
+      
         else:
-            idol = self.get_object(pk)
-            serializer = ScheduleSerializer(
-                data=request.data,
-                context={"idol":idol},
-            )
+            serializer = ScheduleSerializer(data=request.data)
             if serializer.is_valid():
                 schedule = serializer.save()
-                return Response(ScheduleSerializer(schedule).data)
+                print(schedule)
+        # 1. ScheduleType 에 있는 필드가 Category에 없는 경우, 유저가 입력한 내용을 새롭게 db에 생성(ok)     
+                #ScheduleType_data=request.data.get("ScheduleType")
+                
+                try: #카테고리가 있는 경우 > type > content 
+                    print(1)
+                    ScheduleType_data=request.data.get("ScheduleType")
+                    schedule_type=Category.objects.get(type=ScheduleType_data)
+                    print(schedule_type)
+                    #ScheduleContent_data=request.data.get("content")
+                    #schedule_content=Category.objects.filter(type=ScheduleType_data, content=ScheduleContent_data).first()
+                    
+                    if not schedule_content:
+                        schedule_content=Category.objects.create(type=ScheduleType_data)#, content=ScheduleContent_data)
+                    schedule.ScheduleType = schedule_type
+                    schedule.ScheduleContent = schedule_content
+                    schedule.save()
+                    
+                except Category.DoesNotExist:
+                    print(2)
+                    category_serializer=CategorySerializer(data=ScheduleType_data)#카테고리 시리얼라이즈를 이용해 데이터 번역
+                    
+                    if category_serializer.is_valid():#유효성 체크
+                        schedule_type=category_serializer.save()#저장
+                    else:
+                        return Response(category_serializer.errors, status=HTTP_400_BAD_REQUEST)
+                    schedule.ScheduleType=schedule_type#schedule_type을 schedule model의 ScheduleType변수에 할당
+                    schedule.save()  #유저가 입력한 내용을 schedule에 저장
+                    #print(ScheduleType success) 
+        
+        # 2. participant 에 있는 idol의 idol_schedules 필드에 자동으로 schedule추가(OK)
+        # 3. particioant에 아이돌 이름을 입력하면, 해당하는 아이돌들이 participant field에  자동으로 선택되어 질 것(ok)
+                for participant_data in request.data.get("participant"):
+                    try:
+                        idol_name=participant_data.get("idol_name")
+                        idol=Idol.objects.get(idol_name=idol_name)
+                        schedule.participant.add(idol)
+                        
+                    except Idol.DoesNotExist:#아이돌이 없는 경우 :: 새로운 아이돌 만듦
+                        idol_serializer=IdolDetailSerializer(data=participant_data)
+                        if idol_serializer.is_valid():
+                            idol=idol_serializer.save()
+                        else:
+                            return Response(idol_serializer.errors, status=HTTP_404_NOT_FOUND)
+                    idol.idol_schedules.add(schedule)
+                    #print("schedule add success")
+                return Response(ScheduleSerializer(schedule).data, status=HTTP_201_CREATED)
             else:
-                return Response(serializer.errors)
-
-
-
+                return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class Schedules(APIView): 

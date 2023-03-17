@@ -70,9 +70,7 @@ class Schedule(CommonModel):
     ScheduleTitle = models.CharField(
         max_length=150,
         default="",
-        
     )
-
     ScheduleType = models.ForeignKey(
         "categories.Category",
         max_length=150,
@@ -92,9 +90,7 @@ class Schedule(CommonModel):
         related_name="schedules",
     )
     
-    ScheduleContent = models.CharField(
-        max_length=150,
-    )
+    
     when=models.DateTimeField(default=timezone.now())
 
     class Meta:
