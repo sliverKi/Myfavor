@@ -3,12 +3,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound,PermissionDenied,ParseError
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST,HTTP_404_NOT_FOUND
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Idol, Schedule
 from .serializers import  IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer
 from categories.serializers import CategorySerializer
 from categories.models import Category
-# 난 복제본
+
+#3/17일 코드 수정
 
 class Idols(APIView):#idol-list 
 
@@ -163,6 +163,48 @@ class IdolSchedule(APIView):
                 return Response(ScheduleSerializer(schedule).data, status=HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+
+
+class IdolCategories(APIView):
+    
+    def get_object(self, pk):
+        try:
+            return Idol.objects.get(pk=pk)        
+        except Idol.DoesNotExist:
+            print(1)
+            raise NotFound
+    
+        
+    def get(self, request, pk,  type):
+        Type_data=Schedule.objects.get(type)#카테고리 가져옴
+        if Schedule.DoesNotExist:
+            raise ParseError("유효한 type이 아닙니다.")
+        else:
+            serializer=ScheduleSerializer(Type_data, many=True)
+            return Response(serializer.data, status=HTTP_200_OK)
+
+            
+        
+        
+
+class IdolMonth(APIView):
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Schedules(APIView): 

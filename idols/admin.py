@@ -22,6 +22,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     list_display = (
         "pk",
         "ScheduleTitle",
+        "ScheduleType",
         "when",
         "created_at",
         "updated_at",
@@ -29,6 +30,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     list_display_links = (
         "pk",
         "ScheduleTitle",
+        "ScheduleType"
     
     )
 
