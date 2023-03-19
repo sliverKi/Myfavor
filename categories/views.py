@@ -63,3 +63,12 @@ class CategoryDetail(APIView):
     def delete(self, request, pk):  # 관리자만 허용 (할일 : 관리자만허용하게 해야 함)
         self.get_object(pk).delete()
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+"""class CategotyType(APIView):  # 특정 카테고리 
+    def get(self, request):#조회-> 누구나 가능  (OK)
+        search_type = Category.type.filter(type=type)
+        serializer = CategorySerializer(search_type, many=True)
+        return Response(serializer.data)
+"""
+           

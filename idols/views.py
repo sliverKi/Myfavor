@@ -2,7 +2,9 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound,PermissionDenied,ParseError
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST,HTTP_404_NOT_FOUND
+from rest_framework.status import (
+    HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, 
+    HTTP_400_BAD_REQUEST,HTTP_404_NOT_FOUND )
 from .models import Idol, Schedule
 from .serializers import  IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer
 from categories.serializers import CategorySerializer
@@ -103,7 +105,7 @@ class IdolSchedule(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
     
-    def post(self, request,pk):#error 수정 필요 
+    def post(self, request,pk): # (OK)
         
         print("post start")
         serializer=ScheduleSerializer(data=request.data)
@@ -119,10 +121,10 @@ class IdolSchedule(APIView):
                 #ScheduleType_data=request.data.get("ScheduleType")
                 
                 try: #카테고리가 있는 경우 > type > content 
-                    print(1)
+                    #print(1)
                     ScheduleType_data=request.data.get("ScheduleType")
                     schedule_type=Category.objects.get(type=ScheduleType_data)
-                    print(schedule_type)
+                    #print(schedule_type)
                     #ScheduleContent_data=request.data.get("content")
                     #schedule_content=Category.objects.filter(type=ScheduleType_data, content=ScheduleContent_data).first()
                     
@@ -133,7 +135,7 @@ class IdolSchedule(APIView):
                     schedule.save()
                     
                 except Category.DoesNotExist:
-                    print(2)
+                    #print(2)
                     category_serializer=CategorySerializer(data=ScheduleType_data)#카테고리 시리얼라이즈를 이용해 데이터 번역
                     
                     if category_serializer.is_valid():#유효성 체크
@@ -147,6 +149,8 @@ class IdolSchedule(APIView):
         # 2. participant 에 있는 idol의 idol_schedules 필드에 자동으로 schedule추가(OK)
         # 3. particioant에 아이돌 이름을 입력하면, 해당하는 아이돌들이 participant field에  자동으로 선택되어 질 것(ok)
                 for participant_data in request.data.get("participant"):
+                    #if participant_data==None:
+                        #return Response(status=HTTP_404_NOT_FOUND)
                     try:
                         idol_name=participant_data.get("idol_name")
                         idol=Idol.objects.get(idol_name=idol_name)
@@ -163,10 +167,8 @@ class IdolSchedule(APIView):
                 return Response(ScheduleSerializer(schedule).data, status=HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-
-
-
-class IdolCategories(APIView):
+    
+class IdolSchedulesCategories(APIView):# 특정 idol의 idol_schedule을 scheduelType의 카테고리별로 나눔 
     
     def get_object(self, pk):
         try:
@@ -177,37 +179,26 @@ class IdolCategories(APIView):
     
         
     def get(self, request, pk,  type):
-        Type_data=Schedule.objects.get(type)#카테고리 가져옴
-        if Schedule.DoesNotExist:
-            raise ParseError("유효한 type이 아닙니다.")
-        else:
-            serializer=ScheduleSerializer(Type_data, many=True)
-            return Response(serializer.data, status=HTTP_200_OK)
-
-            
         
+        idol=self.get_object(pk)
+        schedules=idol.idol_schedules.filter(ScheduleType__type=type).order_by("when")
         
+        #filter_schedules=[s for s in schedules if s.ScheduleType and s.ScheduleType.type==type]
+        filter_schedules=[]
+        for s in schedules:
+            if s.ScheduleType and s.ScheduleType.type==type:
+                filter_schedules.append(s)
+        #print("filter_schedules",filter_schedules)#category sort
 
-class IdolMonth(APIView):
-    pass
+        serializer=ScheduleSerializer(filter_schedules, many=True)
 
-
-
-
-
-
-
-
-
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
 
 
 
-
-
-
-class Schedules(APIView): 
+class Schedules(APIView): #'아이돌 구분 없이' 현재 저장되어진 스케줄들을 모두 보여줌
     def get(self, request):
         all_schedules = Schedule.objects.all()
         serializer = ScheduleSerializer(all_schedules, many=True)
@@ -226,7 +217,8 @@ class Schedules(APIView):
                 return Response(serializer.errors)
 
 
-class ScheduleDetail(APIView):
+class ScheduleDetail(APIView): # 특정 schedule의 pk로 들어감. 
+                               # if 삭제) db에서도 삭제되고 해당 스케줄을 갖고 있는 아이돌의 스케줄 항목에서도 삭제됨.
     def get_object(self, pk):
         try:
             return Schedule.objects.get(pk=pk)

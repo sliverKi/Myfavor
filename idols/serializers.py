@@ -16,7 +16,7 @@ class IdolSerializer(ModelSerializer):
 class IdolsListSerializer(ModelSerializer):
     class Meta:
         model = Idol
-        fields = ("pk", "idol_name", "idol_group","idol_solo", "idol_profile", )
+        fields = ("pk", "idol_name", "idol_group","idol_solo", "idol_profile",)
 
 
 class ScheduleSerializer(ModelSerializer):
@@ -60,9 +60,3 @@ class IdolDetailSerializer(ModelSerializer):
                 raise ParseError("여자인 아이돌은 남성 항목을 선택할 수 없습니다.")
         return attrs    
 
-"""
-class IdolCategorySerializer(ModelSerializer):
-    class Meta:
-        model=Schedule
-        fields="__all__"
-"""
