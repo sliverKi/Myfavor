@@ -44,7 +44,7 @@ class Users(APIView):  # OK
             user.set_password(password)
             user.save()
             serializer = PrivateUserSerializer(user)
-            return Response(serializer.data, status=HTTP_200_OK)
+            return Response(serializer.data, status=HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
@@ -57,7 +57,7 @@ class AllUsers(APIView):
             many=True,
             context={"request": request},
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     # 유저 정보 update
     def put(self, request):
@@ -185,9 +185,9 @@ class ChangePassword(APIView):
         if user.check_password(old_password):
             user.set_password(new_password)
             user.save()
-            return Response(status=HTTP_200_OK)
+            return Response({"OK":"Accept"},status=HTTP_200_OK)
         else:
-            raise ParseError
+            return Response({"failed":"Wrong Number"},status=HTTP_400_BAD_REQUEST)
 
 
 class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 것
@@ -232,7 +232,7 @@ class AllReport(APIView):  # schedule 제보하기  :: OK #pk대신 아이돌 �
 
         all_reports = Report.objects.all()
         serializer = ReportDetailSerializer(all_reports, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     def post(self, request,):
 
@@ -302,7 +302,7 @@ class ReportDetail(APIView):
             )
         if serializer.is_valid():
             updated_report = serializer.save()
-            return Response(ReportDetailSerializer(updated_report).data)
+            return Response(ReportDetailSerializer(updated_report).data, status=HTTP_200_OK)
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 

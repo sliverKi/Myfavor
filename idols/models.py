@@ -22,7 +22,20 @@ class Idol(models.Model):
         Woman = ("Woman", "Woman")
         Man = ("Man", "Man")
 
-    idol_group = models.CharField(
+    # def group_name_validate(value):
+    #     if value=="GirlGroup" or "BoyGroup":
+    #         raise ValidationError("insert group name")
+    #     else: return 
+
+    Girl_group = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        choices=GroupChoices.choices,
+        # validators=[group_name_validate]
+    )
+
+    Boy_group = models.CharField(
         max_length=30,
         blank=True,
         null=True,
@@ -35,7 +48,8 @@ class Idol(models.Model):
         choices=SoloChoices.choices,
     )
 
-    idol_name = models.CharField(max_length=7)
+    idol_name_kr = models.CharField(max_length=7, default="")
+    idol_name_en = models.CharField(max_length=7, default="")
     idol_profile = models.URLField(
         max_length=10000, 
         blank=True, 
@@ -58,7 +72,7 @@ class Idol(models.Model):
     )
 
     def str(self):
-        return self.idol_name
+        return self.idol_name_kr
 
     class Meta:
         verbose_name_plural = "Our_Idols"

@@ -6,7 +6,7 @@ from rest_framework.status import (
     HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, 
     HTTP_400_BAD_REQUEST,HTTP_404_NOT_FOUND )
 from .models import Idol, Schedule
-from .serializers import  IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer
+from .serializers import  IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer, DateScheduleSerializer
 from categories.serializers import CategorySerializer
 from categories.models import Category
 
@@ -152,7 +152,7 @@ class IdolSchedule(APIView):
                     #if participant_data==None:
                         #return Response(status=HTTP_404_NOT_FOUND)
                     try:
-                        idol_name=participant_data.get("idol_name")
+                        idol_name=participant_data.get("idol_name_kr")
                         idol=Idol.objects.get(idol_name=idol_name)
                         schedule.participant.add(idol)
                         
@@ -193,6 +193,46 @@ class IdolSchedulesCategories(APIView):# 특정 idol의 idol_schedule을 schedue
         serializer=ScheduleSerializer(filter_schedules, many=True)
 
         return Response(serializer.data, status=HTTP_200_OK)
+
+
+class IdolSchedulesYear(APIView):
+    def get_object(self, pk):
+        try:
+            return Idol.objects.get(pk=pk)
+        except Idol.DoesNotExist:
+            return NotFound
+    def get(self, request, pk, type, year):
+        idol=self.get_object(pk=pk)
+        schedules=idol.idol_schedules.filter(ScheduleType__type=type, when__year=year)
+        serializer=DateScheduleSerializer(schedules, many=True)
+        return Response(serializer.data, status=HTTP_200_OK) 
+
+class IdolSchedulesMonth(APIView):
+    def get_object(self, pk):
+        try:
+            return Idol.objects.get(pk=pk)
+        except Idol.DoesNotExist:
+            return NotFound
+    def get(self, request, pk, type, year, month):
+        idol=self.get_object(pk=pk)
+        schedules=idol.idol_schedules.filter(ScheduleType__type=type, when__year=year, when__month=month)
+        serializer=DateScheduleSerializer(schedules, many=True)
+        return Response(serializer.data, status=HTTP_200_OK) 
+
+
+class IdolScheduelsDay(APIView):
+    def get_object(self, pk):
+        try:
+            return Idol.objects.get(pk=pk)
+        except Idol.DoesNotExist:
+            return NotFound
+    def get(self, request, pk, type, year, month, day):
+        idol=self.get_object(pk=pk)
+        schedules=idol.idol_schedules.filter(ScheduleType__type=type, when__year=year, when__month=month, when__day=day)
+        
+        serializer=DateScheduleSerializer(schedules, many=True)
+        return Response(serializer.data, status=HTTP_200_OK) 
+        
 
 
 
