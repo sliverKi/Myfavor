@@ -56,7 +56,7 @@ class SimpleUserSerializers(serializers.ModelSerializer):
 
 # admin 조회 용
 class TinyUserSerializers(serializers.ModelSerializer):
-    pick = IdolSerializer(read_only=True)
+    # pick = IdolSerializer(read_only=True)
 
     def get_object(self, user):
         request = self.context["request"]
@@ -66,10 +66,7 @@ class TinyUserSerializers(serializers.ModelSerializer):
         model = User
         fields = (
             "pk",
-            "username",
             "nickname",
-            "email",
-            "age",
             "pick",
             "is_admin",
         )
