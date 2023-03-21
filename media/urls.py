@@ -7,6 +7,7 @@ urlpatterns=[
     path("photos/<int:pk>", PhotoDetail.as_view())
 ]
 
-# class GetUploadURL(APIView):
-#     def post(self, request):
-#         url="https://api.cloudflare.com/client/v4/accounts/{}/images/v1"
+class GetUploadURL(APIView):
+    def post(self, request):
+        url="https://api.cloudflare.com/client/v4/accounts/{}/images/v1"
+        

@@ -65,10 +65,4 @@ class CategoryDetail(APIView):
         return Response(status=HTTP_204_NO_CONTENT)
 
 
-"""class CategotyType(APIView):  # 특정 카테고리 
-    def get(self, request):#조회-> 누구나 가능  (OK)
-        search_type = Category.type.filter(type=type)
-        serializer = CategorySerializer(search_type, many=True)
-        return Response(serializer.data)
-"""
-           
+
