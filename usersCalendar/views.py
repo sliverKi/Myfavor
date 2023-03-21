@@ -49,7 +49,7 @@ class AllUsers(APIView):
             many=True,
             context={"request": request},
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     # 유저 정보 update
     def put(self, request):

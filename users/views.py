@@ -1,6 +1,6 @@
-import jwt
-import bcrypt
-import json
+#import jwt
+#import bcrypt
+#import json
 
 from django.shortcuts import render
 from django.conf import settings
@@ -44,9 +44,9 @@ class Users(APIView):  # OK
             user.set_password(password)
             user.save()
             serializer = PrivateUserSerializer(user)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_201_CREATED)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class AllUsers(APIView):
@@ -57,7 +57,7 @@ class AllUsers(APIView):
             many=True,
             context={"request": request},
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     # 유저 정보 update
     def put(self, request):
@@ -83,7 +83,7 @@ class AllUsers(APIView):
             serializer = TinyUserSerializers(user)
             return Response(serializer.data, status=HTTP_200_OK)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 # nickname 으로 조회 ( 수정 및 삭제 가능 ) #serializer 변경 (사용자가 보기 위함)
@@ -123,10 +123,9 @@ class PublicUser(APIView):
                 raise ParseError
             # commit
             serializer = TinyUserSerializers(user)
-
-            return Response(PrivateUserSerializer(update_public).data)
+            return Response(PrivateUserSerializer(update_public).data, status=HTTP_200_OK)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def delete(self, request, nickname):
         user = self.objects.get(nickname)
@@ -145,7 +144,7 @@ class UserDetail(APIView):
         except User.DoesNotExist:
             raise NotFound()
         serializer = PrivateUserSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     def put(self, request, pk):
         user = request.user
@@ -169,9 +168,9 @@ class UserDetail(APIView):
             else:
                 raise ParseError
             serializer = TinyUserSerializers(user)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_200_OK)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class ChangePassword(APIView):
@@ -186,13 +185,13 @@ class ChangePassword(APIView):
         if user.check_password(old_password):
             user.set_password(new_password)
             user.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response({"OK":"Accept"},status=HTTP_200_OK)
         else:
-            raise ParseError
+            return Response({"failed":"Wrong Number"},status=HTTP_400_BAD_REQUEST)
 
 
 class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 것
-    # {"email":"test@gmail.com", "password": "test123@E"}
+    # {"email":"eungi@gmail.com", "password": "eungi123@E"}
     def post(self, request, format=None):
 
         email = request.data.get("email")
@@ -208,9 +207,10 @@ class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 �
 
         if user.check_password(password):
             login(request, user)
-            return Response({"ok": "Welcome"}, status=status.HTTP_200_OK)
+            serializer=TinyUserSerializers(user)
+            return Response(serializer.data, status=HTTP_200_OK)
         return Response(
-            {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
+            {"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST
         )
 
 
@@ -220,7 +220,7 @@ class Logout(APIView):
         return Response(status=HTTP_200_OK)
 
 
-class AllReport(APIView):  # schedule 제보하기  :: OK
+class AllReport(APIView):  # schedule 제보하기  :: OK #pk대신 아이돌 이름으로 연결 
     def get_object(self, pk):
 
         try:
@@ -232,9 +232,9 @@ class AllReport(APIView):  # schedule 제보하기  :: OK
 
         all_reports = Report.objects.all()
         serializer = ReportDetailSerializer(all_reports, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request,):
 
         serializer = ReportDetailSerializer(data=request.data)
         if serializer.is_valid():
@@ -244,7 +244,9 @@ class AllReport(APIView):  # schedule 제보하기  :: OK
                     owner=request.user,
                 )
                 whoes = request.data.get("whoes")
+                print(request.user.pick)
                 if request.user.pick.pk not in whoes:
+                    #if request.user.pick.pk
                     raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
                 if not whoes:
                     raise ParseError("제보할 아이돌을 알려 주세요.")
@@ -275,6 +277,7 @@ class AllReport(APIView):  # schedule 제보하기  :: OK
 
 
 class ReportDetail(APIView):
+    
     def get_object(self, pk):
         try:
             return Report.objects.get(pk=pk)
@@ -284,7 +287,7 @@ class ReportDetail(APIView):
     def get(self, request, pk):
         report = self.get_object(pk)
         serializer = ReportDetailSerializer(report)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     def put(self, request, pk):
 
@@ -299,7 +302,7 @@ class ReportDetail(APIView):
             )
         if serializer.is_valid():
             updated_report = serializer.save()
-            return Response(ReportDetailSerializer(updated_report).data)
+            return Response(ReportDetailSerializer(updated_report).data, status=HTTP_200_OK)
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
@@ -312,3 +315,10 @@ class ReportDetail(APIView):
         reports.delete()
 
         return Response(status=HTTP_204_NO_CONTENT)
+
+    
+            
+
+
+        
+    

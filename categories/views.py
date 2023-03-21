@@ -63,3 +63,6 @@ class CategoryDetail(APIView):
     def delete(self, request, pk):  # 관리자만 허용 (할일 : 관리자만허용하게 해야 함)
         self.get_object(pk).delete()
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+

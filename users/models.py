@@ -15,13 +15,13 @@ class User(AbstractUser):
     name = models.CharField(
         max_length=100,
         default="",
-        error_messages={"unique": "This name has already been registered."},
+        #error_messages={"unique": "This name has already been registered."},
         validators=[MinLengthValidator(2, "이름은 2자 이상이어야합니다.")],
     )
     nickname = models.CharField(
         max_length=100,
         default="",
-        # unique=True,
+        unique=True,
         validators=[MinLengthValidator(3, "닉네임은 3자 이상이어야합니다.")],
     )
     email = models.EmailField(
@@ -80,6 +80,8 @@ class Report(Category):
         blank=True,
         related_name="report",
     )
+
+
 
     def str(self):
         return self.title
