@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 from .models import Idol, Schedule
 from categories.serializers import CategorySerializer
-
+from rest_framework.status import HTTP_400_BAD_REQUEST
 
 
 class IdolSerializer(ModelSerializer):
@@ -54,7 +54,7 @@ class DateScheduleSerializer(ModelSerializer):
             "ScheduleTitle", 
             "ScheduleType", 
             "location", 
-            "when", 
+            #"when", 
             "year", 
             "month", 
             "day"
@@ -79,10 +79,19 @@ class IdolDetailSerializer(ModelSerializer):
         fields = "__all__"
     
     def validate(self, attrs):
+        idol_name_kr=attrs.get('idol_name_kr')
+        idol_name_en=attrs.get('idol_name_en')
+
         idol_gender=attrs.get('idol_gender')
         idol_solo=attrs.get('idol_solo')
         Girl_group=attrs.get('Girl_group')
         Boy_group=attrs.get('Boy_group')
+
+        if idol_name_kr and not idol_name_en:
+            raise ParseError("영문 이름을 입력해 주세요.")
+        if not idol_name_kr and idol_name_en:
+            raise ParseError("국문 이름을 입력해 주세요.")
+            
 
         if idol_gender=="Man":
             if idol_solo=="GirlSolo" or Boy_group=="GirlGroup":
@@ -90,5 +99,10 @@ class IdolDetailSerializer(ModelSerializer):
         else:
             if idol_solo=="BoySolo" or Girl_group=="BoyGroup":
                 raise ParseError("여자인 아이돌은 남성 항목을 선택할 수 없습니다.")
+            
+
+        # if not (Girl_group and Boy_group and idol_solo):-> 조건 수정
+        #     raise ParseError("아이돌이 맞나요?")'
+
         return attrs    
 

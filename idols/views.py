@@ -18,7 +18,7 @@ class Idols(APIView):#idol-list
     def get(self, request):#조회-> 누구나 가능  (OK)
         all_idols = Idol.objects.all()
         serializer = IdolsListSerializer(all_idols, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     def post(self, request):  #아이돌 리스트 생성 -> 관리자만 허용  (OK)
         
@@ -27,10 +27,10 @@ class Idols(APIView):#idol-list
         serializer = IdolDetailSerializer(data=request.data)
         if serializer.is_valid():# 유효성 체크
             idol = serializer.save()
-            return Response(IdolsListSerializer(idol).data)
+            return Response(IdolsListSerializer(idol).data, status=HTTP_201_CREATED)
         
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class IdolDetail(APIView): #특정 idol-info 
@@ -46,7 +46,7 @@ class IdolDetail(APIView): #특정 idol-info
             idol,
             context={"request": request},
             )
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
     
     def put(self, request, pk): #idol-info 수정 ~> 관리자만 가능 (OK)
 
