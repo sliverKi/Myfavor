@@ -16,6 +16,7 @@ dotenv = "^0.0.5"
 pyjwt = "^2.6.0"
 djangorestframework-simplejwt = "^5.2.2"
 bcrypt = "^4.0.1"
+environ = "^1.0"
 
 
 [build-system]

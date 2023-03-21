@@ -3,18 +3,62 @@ import re
 from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework import serializers
 
-# 신규 유저 가입 시 확인절차
-
 from .models import User, Report
 
 from idols.models import Idol
-from idols.serializers import IdolSerializer
+from idols.serializers import IdolSerializer, IdolsListSerializer
 
-# 신규 유저 가입 시 확인절차
+# pick 수정용
+class PickSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("pick",)
 
 
-class TinyUserSerializers(serializers.ModelSerializer):  # simple user-info
-    def get_pick(self, user, age):
+# 캘린더에서 사용할 유저 정보
+class CalendarSerializer(serializers.ModelSerializer):
+    pick = IdolSerializer(read_only=True)
+    # is_admin = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            # "pk",
+            "nickname",
+            "pick",
+            # "is_admin",
+        )
+        
+    # def get_is_admin(self, user):
+    #     request = self.context["request"]
+    #     return user.is_admin == request.user.is_admin
+
+
+# 가장 적은 유저 정보(유저 스케줄에 나타낼 정보)
+class SimpleUserSerializers(serializers.ModelSerializer):
+    # pick = IdolSerializer(read_only=True)
+    is_admin = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "nickname",
+            "email",
+            "pick",
+            "is_admin",
+        )
+
+    def get_is_admin(self, user):
+        request = self.context["request"]
+        return user.is_admin == request.user.is_admin
+
+
+# admin 조회 용
+class TinyUserSerializers(serializers.ModelSerializer):
+    pick = IdolSerializer(read_only=True)
+
+    def get_object(self, user):
         request = self.context["request"]
         return Idol.objects.filter(user=request.user, user__pk=user.pk).exists()
 
@@ -24,41 +68,35 @@ class TinyUserSerializers(serializers.ModelSerializer):  # simple user-info
             "pk",
             "username",
             "nickname",
-            "age",
             "email",
-            "profileImg",
+            "age",
             "pick",
         )
 
 
-class PrivateUserSerializer(serializers.ModelSerializer):  # 회원가입시 이용하는 serial
-    # pick = IdolsListSerializer()
+# 회원가입 시 사용하는 정보
+class PrivateUserSerializer(serializers.ModelSerializer):
+    # pick = IdolsListSerializer(read_only=True, many=True)
+
     class Meta:
         model = User
-        exclude = (
-            "password",
-            "is_superuser",
-            "is_staff",
-            "is_active",
-            "first_name",
-            "last_name",
-            "groups",
-            "user_permissions",
-            "last_login",
+        fields = (
             "name",
-            "is_admin",
+            "nickname",
+            "pick",
+            "email",
+            "age",
+            # "password",
         )
-
+        
     def validate_age(self, age):
         print("check age")
         if age:
             if age <= 14 and age >= 0:
                 raise ParseError("15세 부터 가입 가능합니다.")
-
         else:
             raise ParseError("나이를 입력해 주세요.")
         return age
-
     def validate_password(self, password):
 
         if password:
@@ -76,24 +114,33 @@ class PrivateUserSerializer(serializers.ModelSerializer):  # 회원가입시 이
         else:
             raise ParseError("비밀번호를 입력하세요.")
         return password
+    
 
+# admin이 유저 정보를 조회할 때 사용하는 정보
+class UserSerializer(serializers.ModelSerializer):
 
-class UserDetailSerializer(serializers.ModelSerializer):
+    pick = IdolSerializer(read_only=True)
+    is_admin = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        exclude = (
-            "first_name",
-            "last_name",
-            "name",
+
+        fields = (
+            "id",
+            "username",
+            "nickname",
             "age",
-            "is_superuser",
+            "email",
+            "pick",
             "is_admin",
-            "is_staff",
-            "user_permissions",
-            "last_login",
-            "is_active",
-            "date_joined",
+            # "date_joined",
+            # "is_superuser",
+            # "is_staff",
         )
+
+    def get_is_admin(self, user):
+        request = self.context["request"]
+        return user.is_admin == request.user.is_admin
 
 
 class ReportDetailSerializer(serializers.ModelSerializer):

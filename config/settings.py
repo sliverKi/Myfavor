@@ -77,6 +77,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "config.wsgi.application"
 
 
@@ -117,6 +118,8 @@ LANGUAGE_CODE = "ko-kr"
 
 TIME_ZONE = "Asia/Seoul"
 
+DATE_INPUT_FORMATS = ["%Y-%m-%d"]
+
 USE_I18N = True
 
 USE_TZ = True
@@ -155,20 +158,20 @@ CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # "rest_framework.authentication.SessionAuthentication",
+        # "rest_framework.authentication.TokenAuthentication",
+        # "config.authentication.JWTAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-        # "config.authentication.TrustMeBrokerAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
-        "config.authentication.JWTAuthentication",
-        # "rest_framework_simplejwt.authentication.JWTAuthentication",
     ]
 }
-
 
 
 ACCOUNT_AUTHENTICATION_METHOD = "email"  # 로그인시 username 이 아니라 email을 사용하게 하는 설정
 ACCOUNT_EMAIL_REQUIRED = True  # 회원가입시 필수 이메일을 필수항목으로 만들기
 ACCOUNT_USERNAME_REQUIRED = False  # USERNAME 을 필수항목에서 제거
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
-ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True # 비밀번호 지워지지않음
+ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True  # 비밀번호 지워지지않음
 ACCOUNT_SESSION_REMEMBER = True  # 브라우저를 닫아도 세션기록 유지! [ 로그인 안풀리게 ! ]
 SESSION_COOKIE_AGE = 3600

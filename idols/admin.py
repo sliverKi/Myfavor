@@ -6,9 +6,9 @@ from .models import Idol, Schedule
 
 @admin.register(Idol)
 class Idols(admin.ModelAdmin):
-    list_display = ("id", "idol_name", "idol_group", "idol_solo")
+    list_display = ("pk", "idol_name", "idol_group", "idol_solo")
     list_display_links = (
-        "id",
+        "pk",
         "idol_name",
     )
     search_fields = (

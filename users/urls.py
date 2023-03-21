@@ -1,28 +1,19 @@
 from rest_framework.authtoken.views import obtain_auth_token
 from django.urls import path
-from . import views, JWTViews
+
+from . import views
+
 
 urlpatterns = [
-    path("", views.Users.as_view()), # 신규가입
-    # path("admin", views.Admin.as_view()),  # adminProfile (pk:1)
-    path("change-password", views.ChangePassword.as_view()),
-    # path("signup",views.SignUp.as_view()),
-    # path("signin",views.SignIn.as_view()),
-    path("login", views.Login.as_view()),
-    path("logout", views.Logout.as_view()),
-    path("token-login",obtain_auth_token),
-    # path("jwt-login",views.JWTLogin.as_view()),
-
-    path("info/<int:pk>", views.UserDetail.as_view()),
-    path("@<str:nickname>", views.PublicUser.as_view()), # nickname 으로 조회 (nickname의 값이 unique)
+    path("", views.NewUsers.as_view()), # 신규 가입 ( 첫 화면 )
+    path("list", views.AllUsers.as_view()),  # userList[ admin ]
     
-    path("register", JWTViews.RegisterView.as_view()),
-    path("login-jwt", JWTViews.LoginView.as_view()),
-    path("login-ing", JWTViews.UserView.as_view()),
-    path("logout-jwt", JWTViews.LogoutView.as_view()),
-    path("register", JWTViews.RegisterView.as_view()),
-
-    ###################
-    # path("ME/schedules", views.MySchedule.as_view()),  # - 수현
-    # 
+    path("mypage", views.MyPage.as_view()),  # userProfile[ user ] - user용 / user의 정보를 수정할 수 있는 페이지
+    path("<int:pk>", views.UserDetail.as_view()), # pk로 조회 - admin의 정보 확인용 (모든 정보 보여주기)
+    
+    path("edit/pick", views.EditPick.as_view()),  # pk로 수정 - user의 정보 수정 (닉네임, 이메일, 비밀번호
+    path("edit/password", views.EditPassword.as_view()),  # 비밀번호 변경
+    
+    path("login", views.Login.as_view()), # 로그인
+    path("logout", views.Logout.as_view()), # 로그아웃
 ]
