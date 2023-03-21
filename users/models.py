@@ -94,6 +94,8 @@ class Report(Category):
         related_name="report",
     )
 
+
+
     def str(self):
         return self.title
 

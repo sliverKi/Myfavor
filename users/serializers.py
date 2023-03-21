@@ -71,6 +71,7 @@ class TinyUserSerializers(serializers.ModelSerializer):
             "email",
             "age",
             "pick",
+            "is_admin",
         )
 
 

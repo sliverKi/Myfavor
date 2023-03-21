@@ -8,8 +8,7 @@ class Category(models.Model):
         RELEASE = "release", "RELEASES"  # 발매
         CONGRAT = "congrats", "CONGRATS"  # 축하
         SNS = "buy", "BUY"  # 구매
-        ETC = "etc", "ETC"  # 유저(개인 일정)
-
+      
     type = models.CharField(
         max_length=15,
         choices=CategoryKindChoices.choices,

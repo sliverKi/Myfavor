@@ -6,14 +6,18 @@ from .models import Idol, Schedule
 
 @admin.register(Idol)
 class Idols(admin.ModelAdmin):
-    list_display = ("pk", "idol_name", "idol_group", "idol_solo")
+    list_display = ("id", "idol_name_kr","idol_name_en","Girl_group","Boy_group", "idol_solo")
     list_display_links = (
-        "pk",
-        "idol_name",
+        "id",
+        "idol_name_kr",
+        "idol_name_en"
     )
     search_fields = (
-        "idol_name",
-        "idol_group",
+        "idol_name_kr",
+        "idol_name_en",
+        "Girl_group",
+        "Boy_group",
+        #"idol_group",
     )
 
 
@@ -22,6 +26,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     list_display = (
         "pk",
         "ScheduleTitle",
+        "ScheduleType",
         "when",
         "created_at",
         "updated_at",
@@ -29,6 +34,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     list_display_links = (
         "pk",
         "ScheduleTitle",
+        "ScheduleType"
     
     )
 

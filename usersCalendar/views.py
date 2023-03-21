@@ -9,6 +9,7 @@ from rest_framework.exceptions import (
     ParseError,
     NotFound,
 )
+from rest_framework.status import HTTP_200_OK
 from users.serializers import TinyUserSerializers
 from users.models import User
 from .models import UserCalendar
@@ -62,7 +63,7 @@ class MyCalendarDetail(APIView):
             schedule,
             context={"request": request},
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     # 유저 일정 수정
     def put(self, request, pk):

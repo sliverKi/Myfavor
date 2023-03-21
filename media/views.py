@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.conf import settings
-import requests
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import request
+
 # Create your views here.
 class GetUploadURL(APIView):
     def post(self, request):
@@ -9,4 +12,5 @@ class GetUploadURL(APIView):
             "Authorization":f"Bearer {settings.CF_TOCKEN}"
         })
         one_time_url = one_time_url.json()
-        return Response(one_time_url)
+        result=one_time_url.get('rsult')
+        return Response({"uploadURL": result.get('uploadURL')})

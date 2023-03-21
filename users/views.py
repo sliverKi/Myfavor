@@ -57,9 +57,9 @@ class NewUsers(APIView):
             user.set_password(password)
             user.save()
             serializer = PrivateUserSerializer(user)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_201_CREATED)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 # 모든 유저 조회 / userlist
@@ -74,7 +74,7 @@ class AllUsers(APIView):
             many=True,
             context={"request": request},
         )
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
 # 유저 정보 조회 및 수정 및 삭제  :: OK
@@ -102,7 +102,7 @@ class MyPage(APIView):  # OK
             serializer = TinyUserSerializers(user)
             return Response(serializer.data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
         user = request.user
@@ -121,8 +121,8 @@ class UserDetail(APIView):  # OK
             user = User.objects.get(pk=pk)
         except User.DoesNotExist:
             raise NotFound()
-        serializer = TinyUserSerializers(user)
-        return Response(serializer.data)
+        serializer = PrivateUserSerializer(user)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     # 유저 정보 수정
     def put(self, request, pk):
@@ -135,9 +135,9 @@ class UserDetail(APIView):  # OK
         if serializer.is_valid():
             user = serializer.save()
             serializer = TinyUserSerializers(user)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_200_OK)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     # 유저 삭제
     def delete(self, request, pk):
@@ -184,9 +184,9 @@ class AllReport(APIView):
 
         all_reports = Report.objects.all()
         serializer = ReportDetailSerializer(all_reports, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request,):
 
         serializer = ReportDetailSerializer(data=request.data)
         if serializer.is_valid():
@@ -196,7 +196,9 @@ class AllReport(APIView):
                     owner=request.user,
                 )
                 whoes = request.data.get("whoes")
+                print(request.user.pick)
                 if request.user.pick.pk not in whoes:
+                    #if request.user.pick.pk
                     raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
                 if not whoes:
                     raise ParseError("제보할 아이돌을 알려 주세요.")
@@ -226,6 +228,7 @@ class AllReport(APIView):
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 class ReportDetail(APIView):
+    
     def get_object(self, pk):
         try:
             return Report.objects.get(pk=pk)
@@ -235,7 +238,7 @@ class ReportDetail(APIView):
     def get(self, request, pk):
         report = self.get_object(pk)
         serializer = ReportDetailSerializer(report)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     def put(self, request, pk):
 
@@ -250,7 +253,7 @@ class ReportDetail(APIView):
             )
         if serializer.is_valid():
             updated_report = serializer.save()
-            return Response(ReportDetailSerializer(updated_report).data)
+            return Response(ReportDetailSerializer(updated_report).data, status=HTTP_200_OK)
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 

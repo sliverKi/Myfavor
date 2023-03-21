@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import UserCalendar
 
+# 0321 수현
 
 @admin.register(UserCalendar)
 class UserCalendarAdmin(admin.ModelAdmin):
