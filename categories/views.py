@@ -5,6 +5,8 @@ from rest_framework.exceptions import NotFound
 from rest_framework.status import HTTP_204_NO_CONTENT
 from categories.serializers import CategorySerializer
 from .models import Category
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+
 
 # from rest_framework.permissions import IsAuthenticatedOrReadOnly
 

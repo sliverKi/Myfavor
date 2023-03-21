@@ -1,304 +1,138 @@
-from django.shortcuts import render
-from django.conf import settings
-from django.db import transaction
-from django.utils import timezone
-from django.contrib.auth import authenticate, login, logout
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.status import (
-    HTTP_200_OK,
-    HTTP_201_CREATED,
-    HTTP_204_NO_CONTENT,
-    HTTP_400_BAD_REQUEST,
+from rest_framework.permissions import (
+    IsAuthenticated,
 )
 from rest_framework.exceptions import (
-    NotFound,
     NotAuthenticated,
-    ParseError,
     PermissionDenied,
+    ParseError,
+    NotFound,
 )
-from django.core.exceptions import ValidationError
-from .models import User, Report
-from .serializers import (
-    TinyUserSerializers,
-    PrivateUserSerializer,
-    UserDetailSerializer,
-    ReportDetailSerializer,
-)
-from idols.serializers import ScheduleSerializer
-from idols.models import Idol
+from rest_framework.status import HTTP_200_OK
+from users.serializers import TinyUserSerializers
+from users.models import User
+from .models import UserCalendar
+from .serializers import MySerializer
 
-# 신규 유저 추가
-class Users(APIView):  # OK
+
+# 유저 일정 조회(list) / user만 가능
+class MyCalendar(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        all_schedule = UserCalendar.objects.filter(owner=request.user)
+        serilaizer = MySerializer(
+            all_schedule,
+            many=True,
+            context={"request": request},
+        )
+        return Response(serilaizer.data)
+
+    # 유저 일정 입력
     def post(self, request):
-        serializer = PrivateUserSerializer(data=request.data)
+        serializer = MySerializer(data=request.data)
+    
         if serializer.is_valid():
-            user = serializer.save()
-            serializer = PrivateUserSerializer(user)
-            return Response(serializer.data)
+            schedule = serializer.save(
+                owner = request.user,
+            )
+            return Response(MySerializer(schedule).data)
         else:
             return Response(serializer.errors)
+        
+        
+        
+# 유저 일정 조회, 수정, 삭제 / user만 가능
+# 일정을 pk로 자세히 조회
+class MyCalendarDetail(APIView):
 
+    permission_classes = [IsAuthenticated]
 
-class AllUsers(APIView):
-    def get(self, request):  # 조회
-        all_users = User.objects.all()  # 모든 Users 불러와
-        serializer = TinyUserSerializers(
-            all_users,
-            many=True,
+    def get_object(self, pk, user):
+        try:
+            return UserCalendar.objects.get(pk=pk, owner=user)
+        except UserCalendar.DoesNotExist:
+            raise NotFound
+
+    # 유저 일정 조회
+    def get(self, request, pk):
+        schedule = self.get_object(pk, request.user)
+        serializer = MySerializer(
+            schedule,
             context={"request": request},
         )
         return Response(serializer.data, status=HTTP_200_OK)
 
-    # 유저 정보 update
-    def put(self, request):
-        user = request.user
-        serializer = TinyUserSerializers(
-            user,
+    # 유저 일정 수정
+    def put(self, request, pk):
+        schedule = self.get_object(pk, request.user)
+        serializer = MySerializer(
+            schedule,
             data=request.data,
             partial=True,
         )
         if serializer.is_valid():
-            user = serializer.save()
-            serializer = TinyUserSerializers(user)
+            schedule = serializer.save()
+            serializer = MySerializer(schedule)
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
 
-
-class Admin(APIView):
-
-    # 관리자 정보 조회
-    def get(self, request):
-        user = request.user
-        serializer = PrivateUserSerializer(user)
-        return Response(serializer.data)
-
-    # 관리자 정보 update
-    def put(self, request):
-        user = request.user
-        serializer = PrivateUserSerializer(
-            user,
-            data=request.data,
-            partial=True,
-        )
-        if serializer.is_valid():
-            user = serializer.save()
-            serializer = PrivateUserSerializer(user)
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+    # 유저 일정 삭제
+    def delete(self, request, pk):
+        schedule = self.get_object(pk, request.user)
+        schedule.delete()
+        return Response({"message": "일정이 삭제되었습니다."})
 
 
-class PublicUser(APIView):
-    # permission_classes = [IsAuthenticated]
+
+
+
+
+class PublicUser(APIView): # 본인만 수정 가능
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self, request, nickname):
+        if not request.user.is_authenticated:
+            raise NotAuthenticated({"detail": "로그인이 필요합니다."})
+    
     def get(self, request, nickname):
+
         try:
             user = User.objects.get(nickname=nickname)
         except User.DoesNotExist:
             raise NotFound()
-        serializer = PrivateUserSerializer(user)
+        serializer = TinyUserSerializers(user)
         return Response(serializer.data)
 
-    def put(self, request, nickname):
-        user = request.user
-        serializer = PrivateUserSerializer(
-            user,
-            data=request.data,
-            partial=True,
-        )
-        if serializer.is_valid():
-            serializer.save()
-            serializer = PrivateUserSerializer(user)
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+    def put(self, request, nickname, pick):
+        pass
 
-
-class UserDetail(APIView):
-    # permission_classes = [IsAuthenticated]
-    # 유저 정보 조회
-    def get_object(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise NotFound
-
-    def get(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserDetailSerializer(user)
-        return Response(serializer.data)
-
-    # 유저 정보 update
-    def put(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserDetailSerializer(
-            user,
-            data=request.data,
-            partial=True,
-        )
-        if serializer.is_valid():
-            user = serializer.save()
-            serializer = UserDetailSerializer(user)
-            return Response(serializer.data)
-        else:
-            return Response({"detail": serializer.errors})
-
-    def delete(self, request, pk):
-        user = self.get_object(pk)
+    def delete(self, request, nickname):
+        user = self.objects.get(nickname)
+        if not request.user.is_authenticated:
+            raise NotAuthenticated({"detail": "로그인이 필요합니다."})
+        if user.nickname != request.user.nickname:
+            raise PermissionDenied({"detail": "권한이 없습니다."})
         user.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response
 
 
-class ChangePassword(APIView):
-    # permission_classes = [IsAuthenticated]
-    # 유저 비번 update
-    def put(self, request):
-        user = request.user
-        old_password = request.data.get("old_password")
-        new_password = request.data.get("new_password")
-        if not old_password or not new_password:
-            raise ParseError
-        if user.check_password(old_password):
-            user.set_password(new_password)
-            user.save()
-            return Response(status=status.HTTP_200_OK)
-        else:
-            raise ParseError
-
-
-class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 것
-    # {"email":"test@gmail.com", "password": "test123@E"}
-    def post(self, request, format=None):
-
-        email = request.data.get("email")
-        password = request.data.get("password")
-
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise NotFound
-
-        if not email or not password:
-            raise ParseError("잘못된 정보를 입력하였습니다.")
-
-        if user.check_password(password):
-            login(request, user)
-            return Response({"ok": "Welcome"}, status=status.HTTP_200_OK)
-        return Response(
-            {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-
-class Logout(APIView):
-    def post(self, request):
-        logout(request)
-        return Response(status=status.HTTP_200_OK)
-
-
-class AllReport(APIView):  # schedule 제보하기  :: OK
-    def get_object(self, pk):
-
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise NotFound
-
-    def get(self, request):
-
-        all_reports = Report.objects.all()
-        serializer = ReportDetailSerializer(all_reports, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-
-        serializer = ReportDetailSerializer(data=request.data)
-        if serializer.is_valid():
-            with transaction.atomic():
-                report = serializer.save(
-                    owner=request.user,
-                    title=serializer.validated_data["title"],
-                    location=serializer.validated_data["location"],
-                    time=serializer.validated_data["time"],
-                )
-                whoes = request.data.get("whoes")
-                print("owner", request.user.pick)
-                print("whoes", whoes)
-                if not whoes:
-                    raise ParseError("제보 대상을 알려 주세요")
-                if len(set(whoes)) != 1:
-                    raise ParseError("한명의 아이돌만 제보가 가능합니다.")
-                if not isinstance(whoes, list):
-                    if whoes:
-                        raise ParseError("who_pk must be a list")
-                    else:
-                        raise ParseError(
-                            "whoes report? Who should be required. not null"
-                        )
-                # if request.user.pick not in whoes:
-                #    raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
-
-                # for idol_pk in whoes:
-                try:
-                    idol = Idol.objects.get(pk=whoes[0])
-                    print("idol_pk", idol)
-                    report.whoes.add(idol)
-
-                except Idol.DoesNotExist:
-                    raise ParseError("선택하신 아이돌이 없어요")
-
-                serializer = ReportDetailSerializer(
-                    report,
-                    context={"request": request},
-                )
-                return Response(serializer.data, status=HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-
-
-"""class ReportDetail(APIView):
-
-    def get_report(self, pk):
-        try:
-            return Report.objects.get(pk=pk)
-        except Report.DoesNotExist:
-            raise NotFound    
-
+class YearView(APIView):
     def get_object(self, pk):
         try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise NotFound    
+            return UserCalendar.objects.get(pk=pk)
+        except UserCalendar.DoesNotExist:
+            raise NotFound
         
-    def get(self, request, pk, report_pk):(수정 필요)
-        reports = self.get_report(report_pk)
-        if reports.owner == self.get_report(pk):
-            return Response(ReportSerializer(reports).data)
-        else:
-            raise NotFound
-
-
-    def put(self, request, pk, report_pk):
-        user = self.get_object(pk)
-        try:
-            report = Report.objects.get(pk=report_pk, owner=user)
-        except Report.DoesNotExist:
-            raise NotFound
-
-        serializer = ReportSerializer(report, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, pk, report_pk):
-        reports = self.get_report(report_pk)
-
-        if reports.user.pk != request.user.pk:
-            raise PermissionDenied
-
-        reports.delete()
-
-        return Response(status=204)
-"""
+    def get(self, request, pk, year):
+        calendar = self.get_object(pk=pk)
+        schedule = calendar.objects.filter(when__year=year)
+        serializer = MySerializer(
+            schedule,
+            many=True,
+            # context={"request": request},
+        )
+        return Response(serializer.data)

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import requests
+from rest_framework import request
 
 # Create your views here.
 class GetUploadURL(APIView):

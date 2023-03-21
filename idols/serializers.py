@@ -1,4 +1,3 @@
-
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
@@ -11,6 +10,7 @@ class IdolSerializer(ModelSerializer):
     class Meta:
         model=Idol
         fields=("idol_name_kr","idol_name_en")
+
 
 
 class IdolsListSerializer(ModelSerializer):

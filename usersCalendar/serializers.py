@@ -1,84 +1,67 @@
 from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from .models import UserCalendar
 from users.models import User
-from users.serializers import (
-    TinyUserSerializers,
-    PrivateUserSerializer,
-    ReportDetailSerializer,
-)
+from users.serializers import CalendarSerializer, SimpleUserSerializers, TinyUserSerializers, PrivateUserSerializer, ReportDetailSerializer
 
-from idols.serializers import ScheduleSerializer, IdolDetailSerializer
+from idols.serializers import ScheduleSerializer, IdolDetailSerializer,IdolSerializer
 
 
-class UserCalendarSerializer(ModelSerializer):
-    pick = IdolDetailSerializer([])
-
+# 유저 일정만 있는 캘린더
+class MySerializer(ModelSerializer):
+    owner = CalendarSerializer(read_only=True)
+    when = serializers.DateTimeField(format="%Y-%m-%d")
     class Meta:
         model = UserCalendar
-        fields = [
+        fields = (
             "id",
             "owner",
             "title",
+            "when",
             "contents",
-            "pick",
-        ]
+        )
+        
 
-    owner = PrivateUserSerializer("get_nickname")
-
-    def get_nickname(self, obj):
-        return obj.owner
-
-
-class UserDetailSerializer(ModelSerializer):
+class MyDetailSerializer(ModelSerializer):
+    owner = SimpleUserSerializers(read_only=True)
+    when = serializers.DateTimeField(format="%Y-%m-%d")
+    
     class Meta:
         model = UserCalendar
-        fields = [
+        fields = (
             "id",
-            "nickname",
+            "owner",
             "title",
-            "contents",
             "when",
-            "pick",
-            # "pick_schedule",
-        ]
+            "contents",
+            # "idol",
+            # "idol_id",
+            # "idol_schedule",
+            # "idol_schedule_id",
+        )
 
+# year / month / day 로 serializer 를 각각 만든 후,
+# view 에서 year, month, day 를 받아서 각각 view로 생성
+# url 에서 year, month, day 를 str로 전부 받기
 
-class MyScheduleSerializer(ModelSerializer):
+class DateSerializer(ModelSerializer):
+    year = serializers.SerializerMethodField()
+    month = serializers.SerializerMethodField()
+    day = serializers.SerializerMethodField()
+    
     class Meta:
         model = UserCalendar
-        fields = [
-            "pk",
-            "title",
-            "contents",
-            "when",
-        ]
-
-    # pick = ScheduleSerializer("get_idol_schedule")
-
-    # def get_idol_schedule(self,obj):
-    # return obj.idol.schedule
-
-
-# class UserCalendarSerializer(ModelSerializer):
-#     owner = TinyUserSerializers([])
-
-#     class Meta:
-#         model = UserCalendar
-#         exclude = (
-#             "updated_at",
-#             "created_at",
-#         )
-
-
-# class UserDetailSerializer(ModelSerializer):
-#     owner = UserOwnerSerializer([])
-#     # owner = UserOwnerSerializer(many=True)
-
-#     class Meta:
-#         model = UserCalendar
-#         fields = [
-#             "owner",
-#             "title",
-#             "when",
-#             "contents",
-#         ]
+        fields = (
+            "year",
+            "month",
+            "day",
+        )
+        
+    def get_year(self, obj):
+        return obj.when.year
+    
+    def get_month(self, obj):
+        return obj.when.month
+    
+    def get_day(self, obj):
+        return obj.when.day

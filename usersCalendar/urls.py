@@ -1,41 +1,21 @@
 from django.urls import path, include
 from . import views
-from . import views_board
 
 
 urlpatterns = [
-    path("", views.Users.as_view()),  # 신규가입
-    path("userlist", views.AllUsers.as_view()),  # userList[ o ]
-    path("admin", views.Admin.as_view()),  # adminProfile (pk:1)
-    # path("admin/schedules", views.adminCheckSchedule.as_view()),  # adminScheduele (pk:1)
-    path(
-        "<int:pk>",
-        views_board.CalandarViewSet.as_view(
-            {
-                "get": "list",
-                # "get": "retrieve",
-                "post": "create",
-                # "put": "partial_update",
-                # "delete": "destroy",
-            }
-        ),
-    ),
-    path(
-        "<int:pk>/detail",
-        views_board.CalandarViewSet.as_view(
-            {
-                "get": "list",
-                # "get": "retrieve",
-                # "post": "create",
-                "put": "partial_update",
-                "delete": "destroy",
-            }
-        ),
-    ),
-    path("change-password", views.ChangePassword.as_view()),
-    path("@<str:username>", views.PublicUser.as_view()),
-    path("info/<int:pk>", views.UserDetail.as_view()),
-    path("reports", views.AllReport.as_view()),  # user가 schedule을 제보
-    path("login", views.Login.as_view()),
-    path("logout", views.Logout.as_view()),
+    path("", views.MyCalendar.as_view()),
+    path("<int:pk>", views.MyCalendarDetail.as_view()),
+    
+    # 사용자 이름으로 조회 // 본인이 아니면 조회 불가
+    
+    # 사용자 이름 > year
+    # 사용자 이름 > year/month
+    # 사용자 이름 > year/month/day
+    
+    
+    path("@<str:nickname>", views.PublicUser.as_view()),
+    
+    path("<int:pk>/<str:year>", views.YearView.as_view()),
+    # path("<int:pk>/<str:year>/<str:month>", views.MonthView.as_view()),
+    # path("<int:pk>/<str:year>/<str:month>/<str:day>", views.DayView.as_view()),
 ]

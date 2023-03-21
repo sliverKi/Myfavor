@@ -5,7 +5,7 @@ from .models import User, Report
 
 # Register your models here.
 @admin.register(User)
-class CustomeUserAdmin(UserAdmin):
+class CustomUserAdmin(UserAdmin):
     def thumbnail(self, object):
         # print(object.profileImg)
         try:
@@ -23,7 +23,8 @@ class CustomeUserAdmin(UserAdmin):
             "Profile",
             {
                 "fields": (
-                    "username",
+                    # "username",
+                    "name",
                     "profileImg",
                     "nickname",
                     "email",
@@ -58,16 +59,38 @@ class CustomeUserAdmin(UserAdmin):
 
     list_display = (
         "id",
-        "username",
-        "email",
+        # "username",
+        "name",
         "nickname",
+        "email",
         "pick",
-        "age",
         "is_admin",
     )
-    list_display_links = ("email", "nickname", "username")
-    list_filter = ("username",)
-    search_fields = ("username", "nickname")
+    list_display_links = (
+        "email",
+        "nickname",
+        "name",
+        # "username",
+        "pick",
+    )
+    list_filter = ("nickname",)
+    search_fields = (
+        # "username",
+        "name",
+        "nickname",
+        "name",
+        "pick",
+    )
+    ordering = ("email",)
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("name", "email", "nickname", "password1", "password2"),
+            },
+        ),
+    )
 
 
 @admin.register(Report)
