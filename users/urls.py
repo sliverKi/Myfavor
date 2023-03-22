@@ -22,3 +22,4 @@ urlpatterns = [
     path("logout/", views.Logout.as_view()), # 로그아웃
     
 ]
+#user-profile을 받는 url 하나 만들것 

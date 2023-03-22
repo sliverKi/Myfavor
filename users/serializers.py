@@ -70,6 +70,7 @@ class TinyUserSerializers(serializers.ModelSerializer):
             "email",
             "pick",
             "is_admin",
+            "profileImg",
         )
 
 
