@@ -9,14 +9,15 @@ from rest_framework.exceptions import (
     ParseError,
     NotFound,
 )
+from rest_framework.validators import ValidationError
 from rest_framework.status import HTTP_200_OK
 from users.serializers import TinyUserSerializers
 from users.models import User
 from .models import UserCalendar
-from .serializers import MySerializer
+from .serializers import MySerializer, DateSerializer
 
 
-# 유저 일정 조회(list) / user만 가능
+# 유저 일정 조회(list) / 본인만 가능
 class MyCalendar(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -33,17 +34,16 @@ class MyCalendar(APIView):
     # 유저 일정 입력
     def post(self, request):
         serializer = MySerializer(data=request.data)
-    
+
         if serializer.is_valid():
             schedule = serializer.save(
-                owner = request.user,
+                owner=request.user,
             )
             return Response(MySerializer(schedule).data)
         else:
             return Response(serializer.errors)
-        
-        
-        
+
+
 # 유저 일정 조회, 수정, 삭제 / user만 가능
 # 일정을 pk로 자세히 조회
 class MyCalendarDetail(APIView):
@@ -87,37 +87,103 @@ class MyCalendarDetail(APIView):
         return Response({"message": "일정이 삭제되었습니다."})
 
 
+class YearView(APIView):
 
-
-
-
-class PublicUser(APIView): # 본인만 수정 가능
     permission_classes = [IsAuthenticated]
-    
-    def get_object(self, request, nickname):
-        if not request.user.is_authenticated:
-            raise NotAuthenticated({"detail": "로그인이 필요합니다."})
-    
-    def get(self, request, nickname):
 
+    def get_object(self, year):
         try:
-            user = User.objects.get(nickname=nickname)
+            return UserCalendar.objects.filter(when__year=year)
         except User.DoesNotExist:
-            raise NotFound()
-        serializer = TinyUserSerializers(user)
-        return Response(serializer.data)
+            raise NotFound
 
-    def put(self, request, nickname, pick):
-        pass
+    def get(self, request, year):
 
-    def delete(self, request, nickname):
-        user = self.objects.get(nickname)
-        if not request.user.is_authenticated:
-            raise NotAuthenticated({"detail": "로그인이 필요합니다."})
-        if user.nickname != request.user.nickname:
-            raise PermissionDenied({"detail": "권한이 없습니다."})
-        user.delete()
-        return Response
+        calendar = self.get_object(year)
+        print(calendar)
+        serializer = DateSerializer(
+            calendar,
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
+class MonthView(APIView):
 
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, year, month):
+        try:
+            return UserCalendar.objects.filter(when__year=year, when__month=month)
+        except User.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, year, month):
+
+        calendar = self.get_object(year, month)
+        print(calendar)
+        serializer = DateSerializer(
+            calendar,
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(serializer.data, status=HTTP_200_OK)
+
+
+class DayView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, year, month, day):
+        try:
+            return UserCalendar.objects.filter(
+                when__year=year, when__month=month, when__day=day
+            )
+        except User.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, year, month, day):
+
+        calendar = self.get_object(year, month, day)
+        
+        serializer = DateSerializer(
+            calendar,
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def post(self, request, year, month, day):
+        serializer = MySerializer(data=request.data)
+        print("day",day)
+        if serializer.is_valid():
+            schedule = serializer.save(
+                owner=request.user,
+            )
+            print("day",day)
+            return Response(MySerializer(schedule).data)
+        else:
+            return Response(serializer.errors)
+
+    def put(self, request, year, month, day):
+        schedule = self.get_object(year, month, day)
+        serializer = MySerializer(
+            schedule,
+            data=request.data,
+            partial=True,
+        )
+        if serializer.is_valid():
+            schedule = serializer.save()
+            serializer = MySerializer(schedule)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def delete(self, request, year, month, day):
+        schedule = self.get_object(year, month, day)
+        schedule.delete()
+        return Response({"message": "일정이 삭제되었습니다."})

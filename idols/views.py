@@ -89,7 +89,7 @@ class IdolDetail(APIView): #특정 idol-info
             return Response(status=HTTP_404_NOT_FOUND)    
 
 class IdolSchedule(APIView):
-   
+
     def get_object(self, pk):
         try:
             return Idol.objects.get(pk=pk)
@@ -112,7 +112,7 @@ class IdolSchedule(APIView):
         serializer=ScheduleSerializer(data=request.data)
         if not request.user.is_admin:
             raise PermissionDenied
-      
+        
         else:
             serializer = ScheduleSerializer(data=request.data)
             if serializer.is_valid():

@@ -41,4 +41,3 @@ class UserCalendar(CommonModel):
     class Meta:
         verbose_name_plural = "User's Calendar"
 
-
