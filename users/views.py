@@ -164,7 +164,7 @@ class EditPassword(APIView):  # OK
             if old_password != new_password:
                 user.set_password(new_password)
                 user.save()
-                return Response({"비밀번호가 성공적으로 변경되었습니다."})
+                return Response({"비밀번호가 성공적으로 변경되었습니다."} )
             else:
                 return Response({"변경 될 비밀번호가 기존 비밀번호와 동일합니다."})
         else:
@@ -289,15 +289,11 @@ class Login(APIView):  # OK
 
         if user.check_password(password):
             login(request, user)
-
-            if user and user.is_admin:
-                return Response({"관리자 로그인 성공!"}, status=HTTP_200_OK)
-
-            elif user:
-                return Response({"로그인 성공!"}, status=HTTP_200_OK)
-
-        else:
-            return Response({"error": "비밀번호를 잘못 입력하였습니다."}, status=HTTP_400_BAD_REQUEST)
+            serializer=TinyUserSerializers(user)
+            return Response(serializer.data, status=HTTP_200_OK)
+        return Response(
+            {"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST
+        )
 
 
 # 로그아웃  :: OK

@@ -9,8 +9,9 @@ from .models import Idol, Schedule
 from .serializers import  IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer, DateScheduleSerializer
 from categories.serializers import CategorySerializer
 from categories.models import Category
-
+from media.serializers import PhotoSerializer
 #3/17일 코드 수정
+#3/21 code merge
 
 class Idols(APIView):#idol-list 
 
@@ -152,8 +153,8 @@ class IdolSchedule(APIView):
                     #if participant_data==None:
                         #return Response(status=HTTP_404_NOT_FOUND)
                     try:
-                        idol_name=participant_data.get("idol_name_kr")
-                        idol=Idol.objects.get(idol_name=idol_name)
+                        idol_name_kr=participant_data.get("idol_name_kr")
+                        idol=Idol.objects.get(idol_name_kr=idol_name_kr)
                         schedule.participant.add(idol)
                         
                     except Idol.DoesNotExist:#아이돌이 없는 경우 :: 새로운 아이돌 만듦
@@ -174,7 +175,6 @@ class IdolSchedulesCategories(APIView):# 특정 idol의 idol_schedule을 schedue
         try:
             return Idol.objects.get(pk=pk)        
         except Idol.DoesNotExist:
-            print(1)
             raise NotFound
     
         
@@ -232,6 +232,8 @@ class IdolScheduelsDay(APIView):
         
         serializer=DateScheduleSerializer(schedules, many=True)
         return Response(serializer.data, status=HTTP_200_OK) 
+        
+
         
 
 
@@ -295,3 +297,23 @@ class ScheduleDetail(APIView): # 특정 schedule의 pk로 들어감.
             return PermissionDenied
         schedule.delete()
         return Response(status=HTTP_204_NO_CONTENT)
+    
+
+class IdolPhotos(APIView):
+    def get_object(self, pk):
+        try:
+            return Idol.objects.get(pk=pk)    
+        except Idol.DoesNotExist:
+            raise NotFound
+    def post(self, request, pk):
+        idol =self.get_object(pk)
+        if not request.user.is_admin:   
+            raise PermissionDenied
+        serializer=PhotoSerializer(data=request.data)
+        if serializer.is_valid():
+            photo=serializer.save(idol=idol)
+            serializer=PhotoSerializer(photo)
+            return Response(serializer.data, status=HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
