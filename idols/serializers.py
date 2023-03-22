@@ -23,10 +23,7 @@ class ScheduleSerializer(ModelSerializer):
     ScheduleType = CategorySerializer(read_only=True)
     participant = IdolSerializer(many=True, read_only=True) #읽기 전용 필드 
     when=serializers.DateTimeField(read_only=True)
-    
-    # year=serializers.ReadOnlyField(source='when.year')
-    # month=serializers.ReadOnlyField(source='when.month')
-    # day=serializers.ReadOnlyField(source='when.day')
+
     class Meta:
         model = Schedule
         fields = (
@@ -36,9 +33,6 @@ class ScheduleSerializer(ModelSerializer):
             "location",
             "when",
             "participant",
-            # "year",
-            # "month",
-            # "day"
         )
 
 class DateScheduleSerializer(ModelSerializer):
@@ -102,7 +96,7 @@ class IdolDetailSerializer(ModelSerializer):
             
 
         # if not (Girl_group and Boy_group and idol_solo):-> 조건 수정
-        #     raise ParseError("아이돌이 맞나요?")'
+        #     raise ParseError("아이돌이 맞나요?")
 
         return attrs    
 

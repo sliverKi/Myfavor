@@ -48,8 +48,8 @@ class Idol(models.Model):
         choices=SoloChoices.choices,
     )
 
-    idol_name_kr = models.CharField(max_length=7, default="")
-    idol_name_en = models.CharField(max_length=7, default="")
+    idol_name_kr = models.CharField(max_length=100, default="")
+    idol_name_en = models.CharField(max_length=100, default="")
     idol_profile = models.URLField(
         max_length=10000, 
         blank=True, 

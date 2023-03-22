@@ -15,7 +15,7 @@ urlpatterns = [
     
     path("@<str:nickname>", views.PublicUser.as_view()),
     
-    path("<int:pk>/<str:year>", views.YearView.as_view()),
+    # path("@<str:nickname>/<str:year>", views.YearView.as_view()),
     # path("<int:pk>/<str:year>/<str:month>", views.MonthView.as_view()),
     # path("<int:pk>/<str:year>/<str:month>/<str:day>", views.DayView.as_view()),
 ]

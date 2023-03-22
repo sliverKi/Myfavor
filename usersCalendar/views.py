@@ -120,19 +120,4 @@ class PublicUser(APIView): # 본인만 수정 가능
         return Response
 
 
-class YearView(APIView):
-    def get_object(self, pk):
-        try:
-            return UserCalendar.objects.get(pk=pk)
-        except UserCalendar.DoesNotExist:
-            raise NotFound
-        
-    def get(self, request, pk, year):
-        calendar = self.get_object(pk=pk)
-        schedule = calendar.objects.filter(when__year=year)
-        serializer = MySerializer(
-            schedule,
-            many=True,
-            # context={"request": request},
-        )
-        return Response(serializer.data)
+
