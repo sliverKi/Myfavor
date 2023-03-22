@@ -24,7 +24,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
-    #"rest_framework_simplejwt",
+    # "rest_framework_simplejwt",
 ]
 
 CUSTOM_APPS = [
@@ -120,9 +120,11 @@ TIME_ZONE = "Asia/Seoul"
 
 DATE_INPUT_FORMATS = ["%Y-%m-%d"]
 
-USE_I18N = True
+DATE_FORMAT = "F j"
 
-USE_TZ = True
+USE_I18N = False
+
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

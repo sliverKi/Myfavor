@@ -67,6 +67,7 @@ class TinyUserSerializers(serializers.ModelSerializer):
         fields = (
             "pk",
             "nickname",
+            "email",
             "pick",
             "is_admin",
         )

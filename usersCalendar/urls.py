@@ -3,19 +3,15 @@ from . import views
 
 
 urlpatterns = [
-    path("", views.MyCalendar.as_view()),
-    path("<int:pk>", views.MyCalendarDetail.as_view()),
+    # 전체 조회 - [ get / post ]
+    path("", views.MyCalendar.as_view()), # 내 일정 전체 조회
     
-    # 사용자 이름으로 조회 // 본인이 아니면 조회 불가
+    # year - [ get ]
+    path("<int:year>/", views.YearView.as_view()), # 내 일정 연도별 조회
     
-    # 사용자 이름 > year
-    # 사용자 이름 > year/month
-    # 사용자 이름 > year/month/day
+    # month - [ get ]
+    path("<int:year>/<int:month>/", views.MonthView.as_view()), # 내 일정 연도 - 월별 조회
     
-    
-    path("@<str:nickname>", views.PublicUser.as_view()),
-    
-    path("<int:pk>/<str:year>", views.YearView.as_view()),
-    # path("<int:pk>/<str:year>/<str:month>", views.MonthView.as_view()),
-    # path("<int:pk>/<str:year>/<str:month>/<str:day>", views.DayView.as_view()),
+    # day - [post / put / delete]
+    path("<int:year>/<int:month>/<int:day>/", views.DayView.as_view()), # 내 일정 연도- 월 - 일별 조회
 ]
