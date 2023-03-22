@@ -164,7 +164,7 @@ class EditPassword(APIView):  # OK
             if old_password != new_password:
                 user.set_password(new_password)
                 user.save()
-                return Response({"비밀번호가 성공적으로 변경되었습니다."})
+                return Response({"비밀번호가 성공적으로 변경되었습니다."} )
             else:
                 return Response({"변경 될 비밀번호가 기존 비밀번호와 동일합니다."})
         else:
@@ -286,11 +286,6 @@ class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 �
         return Response(
             {"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST
         )
-
-
-
-
-
 
 
 

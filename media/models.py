@@ -2,7 +2,6 @@ from django.db import models
 from common.models import CommonModel
 
 class Photo(CommonModel):
-    title=models.CharField(max_length=150, default="")#사진 제목
 
     ImgFile = models.URLField()
     
@@ -10,16 +9,18 @@ class Photo(CommonModel):
         max_length=150,
     )
 
-    schedule=models.ForeignKey(#수정 필요 :: 내 일정 업로드시 포토,비디오 가능??
-        "usersCalendar.UserCalendar",
-        null=True,
+    idol=models.ForeignKey(
+        "idols.Idol",
         blank=True,
-        on_delete=models.CASCADE,
-        related_name="photos"
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="photo",
     )
-
-    def __str__(self):
-        return "Photo File"
+    
+    # def __str__(self):
+    #     return "Photo File"
+    def str(self):
+        return self.idol
     
 class Video(CommonModel):
     title=models.CharField(max_length=150, default="")#비디오 제목
@@ -29,12 +30,5 @@ class Video(CommonModel):
     description=models.CharField(
         max_length=150,
     )    
-    schedule=models.ForeignKey(#수정 필요 :: 내 일정 업로드시 포토,비디오 가능??
-        "usersCalendar.UserCalendar",
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,   
-        related_name="videos"
-    )
     def __str__(self):
         return "Video File"

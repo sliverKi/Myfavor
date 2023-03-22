@@ -7,7 +7,8 @@ class PhotoSerializer(ModelSerializer):
         model=Photo
         fields=(
             "pk",
-            "title",
             "ImgFile",
             "description",
+            "idol",
+            "user",
         )
