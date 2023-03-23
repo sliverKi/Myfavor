@@ -31,7 +31,7 @@ class Idol(models.Model):
     #     else: return 
 
     Girl_group = models.CharField(
-        max_length=30,
+        max_length=40,
         blank=True,
         null=True,
         choices=GroupChoices.choices,
@@ -39,13 +39,13 @@ class Idol(models.Model):
     )
 
     Boy_group = models.CharField(
-        max_length=30,
+        max_length=40,
         blank=True,
         null=True,
         choices=GroupChoices.choices,
     )
     idol_solo = models.CharField(
-        max_length=30,
+        max_length=40,
         blank=True,
         null=True,
         choices=SoloChoices.choices,
@@ -64,7 +64,7 @@ class Idol(models.Model):
     idol_birthday = models.DateField()
 
     idol_gender = models.CharField(
-        max_length=5,
+        max_length=8,
         choices=GenderChoices.choices,
     )
 

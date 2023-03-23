@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import os
 import environ
@@ -16,7 +17,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True #yellow page
+DEBUG = True
+#yellow page
 #DEBUR="RENDER" not in os.environ
 ALLOWED_HOSTS = ["*"]
 #RENDER_EXTERNAL_HOSTNAME=os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -97,12 +99,13 @@ if DEBUG:
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": "MyFavorCalendar",
-            "USER": "postgres",
-            "PASSWORD": "rhdmsrl98~!",
-            "HOST": "127.0.0.1",
-            "PORT": "5432",
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'MyFavor',
+            'USER': 'postgres',
+            'PASSWORD': 'rhdmsrl98~!',
+            'HOST': 'localhost',
+            'PORT':'5432',
+            
         }
     }
 # Password validation

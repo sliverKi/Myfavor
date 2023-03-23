@@ -39,7 +39,7 @@ class User(AbstractUser):
 
     objects = CustomUserManager()
 
-    profileImg = models.URLField(blank=True, null=True, default="https://audition.hanbiton.com/images/common/img_default.jpg")
+    profileImg = models.URLField(blank=True, null=True,)
 
     age = models.PositiveIntegerField(
         blank=False,
