@@ -86,7 +86,7 @@ class MyCalendarDetail(APIView):
         schedule.delete()
         return Response({"message": "일정이 삭제되었습니다."})
 
-
+# 년도별 조회
 class YearView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -109,7 +109,7 @@ class YearView(APIView):
 
         return Response(serializer.data, status=HTTP_200_OK)
 
-
+# 월별 조회
 class MonthView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -132,7 +132,7 @@ class MonthView(APIView):
 
         return Response(serializer.data, status=HTTP_200_OK)
 
-
+# 일별 조회 [get / post]
 class DayView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -172,14 +172,7 @@ class DayView(APIView):
 
     
 
-    # 이러면 그 날에 등록된 일정이 모두 삭제 됨
-    # def delete(self, request, year, month, day):
-    #     schedule = self.get_object(year, month, day)
-    #     schedule.delete()
-    #     return Response({"message": "일정이 삭제되었습니다."})
-
-
-# 당일 일정 하나씩 조회 (삭제 및 수정 용)
+# 당일 일정 하나씩 pk 번호로 조회 [get / put / delete]
 class DayDetailView(APIView):
     def get_object(self, year, month, day, pk):
         try:
@@ -204,7 +197,7 @@ class DayDetailView(APIView):
 
         return Response(serializer.data, status=HTTP_200_OK)
     
-
+    # 당일 일정 수정
     def put(self, request, year, month, day, pk):
         calendar = self.get_object(year, month, day, pk).get()
         serializer = DateSerializer(calendar, data=request.data, partial=True)

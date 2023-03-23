@@ -13,7 +13,7 @@ urlpatterns = [
 
     path("schedules/", views.Schedules.as_view()),  # all_schedules  [ GET, POST ]
     path("schedules/<int:pk>/", views.ScheduleDetail.as_view()),  # one_schedule  [PUT, DELETE]
-    path("<int:pk>/photos", views.IdolPhotos.as_view()), #idol-profile img [POST]
+    path("<int:pk>/photos/", views.IdolPhotos.as_view()), #idol-profile img [POST]
 
 ]
 

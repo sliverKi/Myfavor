@@ -171,8 +171,8 @@ CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
 
 
 # GH_SECRET=env("GH_SECRET")
-# CF_TOKEN=env("CF_TOCKEN")
-# CF_ID=env("CF_ID")
+CF_TOKEN=env("CF_TOKEN")
+CF_ID=env("CF_ID")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

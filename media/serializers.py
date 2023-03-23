@@ -9,6 +9,11 @@ class PhotoSerializer(ModelSerializer):
             "pk",
             "ImgFile",
             "description",
-            "idol",
-            "user",
+            "idol"
         )
+
+        # {  
+            # "ImgFile":"https://i.ytimg.com/vi/pz_1O1GA43c/maxresdefault.jpg",
+            # "description":"JISU",
+            # "idol":1,
+        # }
