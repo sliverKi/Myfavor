@@ -12,6 +12,8 @@ urlpatterns = [
     # month - [ get ]
     path("<int:year>/<int:month>/", views.MonthView.as_view()), # 내 일정 연도 - 월별 조회
     
-    # day - [post / put / delete]
+    # day - [ post ]
     path("<int:year>/<int:month>/<int:day>/", views.DayView.as_view()), # 내 일정 연도- 월 - 일별 조회
+    # day - [ get / post / delete ]
+    path("<int:year>/<int:month>/<int:day>/<int:pk>", views.DayDetailView.as_view()), # 내 일정 연도/월/일 별 조회 / 수정 / 삭제
 ]

@@ -5,16 +5,10 @@ from users.models import User
 from users.serializers import (
     CalendarSerializer,
     SimpleUserSerializers,
-    TinyUserSerializers,
-    PrivateUserSerializer,
-    ReportDetailSerializer,
+
 )
 
 ## 0322 최종 코드
-
-from rest_framework.validators import UniqueTogetherValidator
-
-from idols.serializers import ScheduleSerializer, IdolDetailSerializer, IdolSerializer
 
 
 # 유저 일정만 있는 캘린더
@@ -25,7 +19,7 @@ class MySerializer(ModelSerializer):
     class Meta:
         model = UserCalendar
         fields = (
-            # "id",
+            "pk",
             "owner",
             "title",
             "when",
@@ -40,7 +34,7 @@ class MyDetailSerializer(ModelSerializer):
     class Meta:
         model = UserCalendar
         fields = (
-            # "id",
+            "pk",
             "owner",
             "title",
             "when",
@@ -51,10 +45,6 @@ class MyDetailSerializer(ModelSerializer):
             # "idol_schedule_id",
         )
 
-
-# year / month / day 로 serializer 를 각각 만든 후,
-# view 에서 year, month, day 를 받아서 각각 view로 생성
-# url 에서 year, month, day 를 str로 전부 받기
 
 
 class DateSerializer(ModelSerializer):
@@ -71,6 +61,7 @@ class DateSerializer(ModelSerializer):
             "year",
             "month",
             "day",
+            "pk",
             "title",
             "contents",
         )
@@ -83,3 +74,5 @@ class DateSerializer(ModelSerializer):
 
     def get_day(self, obj):
         return obj.when.day
+
+
