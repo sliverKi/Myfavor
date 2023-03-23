@@ -14,6 +14,9 @@ class Idol(models.Model):
         GirlGroup = ("GirlGroup", "GirlGroup")
         BoyGroup = ("BoyGroup", "BoyGroup")
 
+
+    #class GirlGroupChoices(models.TextChoices):
+
     class SoloChoices(models.TextChoices):
         GirlSolo = ("GirlSolo", "GirlSolo")
         BoySolo = ("BoySolo", "BoySolo")
