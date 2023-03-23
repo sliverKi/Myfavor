@@ -289,39 +289,6 @@ class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 �
 
 
 
-
-# # 로그인  :: OK -> 관리자 로그인 구분 OK
-# class Login(APIView):  # OK
-#     # {"email":"test@gmail.com", "password": "test123@E"}
-#     def get(self, request):
-#         return Response({"email, password를 입력해주세요."})
-
-#     def post(self, request):
-
-#         email = request.data.get("email")
-#         password = request.data.get("password")
-
-#         if not email or not password:
-#             return ParseError("잘못된 정보를 입력하였습니다.")
-
-#         try:
-#             user = User.objects.get(email=email)
-#         except User.DoesNotExist:
-#             raise ParseError("존재하지 않는 이메일입니다.")
-
-#         if user.check_password(password):
-#             login(request, user)
-
-#             # if user and user.is_admin:
-#             #     return Response({"관리자 로그인 성공!"}, status=HTTP_200_OK)
-
-#             # elif user:
-#             #     return Response({"로그인 성공!"}, status=HTTP_200_OK)
-
-#         else:
-#             return Response({"error": "비밀번호를 잘못 입력하였습니다."}, status=HTTP_400_BAD_REQUEST)
-
-
 # 로그아웃  :: OK
 class Logout(APIView):  # OK
     permission_classes = [IsAuthenticated]

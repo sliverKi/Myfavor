@@ -10,7 +10,7 @@ from rest_framework.exceptions import (
     NotFound,
 )
 from rest_framework.validators import ValidationError
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 from users.serializers import TinyUserSerializers
 from users.models import User
 from .models import UserCalendar
@@ -87,22 +87,51 @@ class MyCalendarDetail(APIView):
         return Response({"message": "일정이 삭제되었습니다."})
 
 
+# 년도별 조회
+# class YearView(APIView):
+
+#     permission_classes = [IsAuthenticated]
+
+#     def get_object(self, year):
+#         try:
+#             return UserCalendar.objects.filter(when__year=year)
+#         except User.DoesNotExist:
+#             raise NotFound
+
+#     def get(self, request, year):
+
+#         calendar = self.get_object(year)
+#         print(calendar)
+#         serializer = DateSerializer(
+#             calendar,
+#             many=True,
+#             context={"request": request},
+#         )
+
+#         return Response(serializer.data, status=HTTP_200_OK)
+
+
 class YearView(APIView):
 
     permission_classes = [IsAuthenticated]
 
     def get_object(self, year):
-        try:
-            return UserCalendar.objects.filter(when__year=year)
-        except User.DoesNotExist:
+        # Retrieve the calendars for the specified year and requesting user
+        calendars = UserCalendar.objects.filter(
+            when__year=year,
+            owner=self.request.user,
+        )
+
+        if not calendars:
             raise NotFound
 
-    def get(self, request, year):
+        return calendars
 
-        calendar = self.get_object(year)
-        print(calendar)
+    def get(self, request, year):
+        calendars = self.get_object(year)
+
         serializer = DateSerializer(
-            calendar,
+            calendars,
             many=True,
             context={"request": request},
         )
@@ -110,15 +139,23 @@ class YearView(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
 
+# 월별 조회
 class MonthView(APIView):
 
     permission_classes = [IsAuthenticated]
 
     def get_object(self, year, month):
-        try:
-            return UserCalendar.objects.filter(when__year=year, when__month=month)
-        except User.DoesNotExist:
+        # Retrieve the calendars for the specified year and requesting user
+        calendars = UserCalendar.objects.filter(
+            when__year=year,
+            when__month=month,
+            owner=self.request.user,
+        )
+
+        if not calendars:
             raise NotFound
+
+        return calendars
 
     def get(self, request, year, month):
 
@@ -133,22 +170,29 @@ class MonthView(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
 
+# 일별 조회 [get / post]
 class DayView(APIView):
 
     permission_classes = [IsAuthenticated]
 
     def get_object(self, year, month, day):
-        try:
-            return UserCalendar.objects.filter(
-                when__year=year, when__month=month, when__day=day
-            )
-        except User.DoesNotExist:
+        # Retrieve the calendars for the specified year and requesting user
+        calendars = UserCalendar.objects.filter(
+            when__year=year,
+            when__month=month,
+            when__day=day,
+            owner=self.request.user,
+        )
+
+        if not calendars:
             raise NotFound
+
+        return calendars
 
     def get(self, request, year, month, day):
 
         calendar = self.get_object(year, month, day)
-        
+
         serializer = DateSerializer(
             calendar,
             many=True,
@@ -157,33 +201,65 @@ class DayView(APIView):
 
         return Response(serializer.data, status=HTTP_200_OK)
 
+    # 당일 일정 작성
     def post(self, request, year, month, day):
         serializer = MySerializer(data=request.data)
-        print("day",day)
+        print("day", day)
         if serializer.is_valid():
             schedule = serializer.save(
                 owner=request.user,
             )
-            print("day",day)
+            print("day", day)
             return Response(MySerializer(schedule).data)
         else:
             return Response(serializer.errors)
 
-    def put(self, request, year, month, day):
-        schedule = self.get_object(year, month, day)
-        serializer = MySerializer(
-            schedule,
-            data=request.data,
-            partial=True,
-        )
-        if serializer.is_valid():
-            schedule = serializer.save()
-            serializer = MySerializer(schedule)
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
 
-    def delete(self, request, year, month, day):
-        schedule = self.get_object(year, month, day)
+# 당일 일정 하나씩 pk 번호로 조회 [get / put / delete]
+class DayDetailView(APIView):
+    def get_object(self, year, month, day, pk):
+        # Retrieve the calendars for the specified year and requesting user
+        calendars = UserCalendar.objects.filter(
+            when__year=year,
+            when__month=month,
+            when__day=day,
+            owner=self.request.user,
+            pk=pk,
+        )
+
+        if not calendars:
+            raise NotFound
+
+        return calendars
+
+    def get(self, request, year, month, day, pk):
+
+        if calendar.user != self.request.user:
+            raise PermissionDenied(status=HTTP_403_FORBIDDEN)
+
+        calendar = self.get_object(year, month, day, pk)
+
+        serializer = DateSerializer(
+            calendar,
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    # 당일 일정 수정
+    def put(self, request, year, month, day, pk):
+        calendar = self.get_object(year, month, day, pk).get()
+        serializer = DateSerializer(calendar, data=request.data, partial=True)
+        if serializer.is_valid():
+            calendar = serializer.save(user=request.user)
+            serializer = DateSerializer(calendar)
+            return Response(serializer.data, status=HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+    # 당일 일정 삭제
+    def delete(self, request, year, month, day, pk):
+        schedule = self.get_object(year, month, day, pk)
         schedule.delete()
-        return Response({"message": "일정이 삭제되었습니다."})
+        return Response({"message": "일정이 삭제되었습니다."}, status=HTTP_200_OK)
