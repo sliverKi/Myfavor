@@ -1,7 +1,8 @@
-
+from decouple import config
 from pathlib import Path
 import os
 import environ
+import my_settings
 #import dj_database_url
 env = environ.Env()
 
@@ -17,7 +18,6 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 #yellow page
 #DEBUR="RENDER" not in os.environ
 ALLOWED_HOSTS = ["*"]
@@ -86,30 +86,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-#3/23>>
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-if DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'MyFavor',
-            'USER': 'postgres',
-            'PASSWORD': 'rhdmsrl98~!',
-            'HOST': 'localhost',
-            'PORT':'5432',
-            
-        }
-    }
-# Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+DEBUG = True
+DATABASES = my_settings.DATABASES
+
+
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -141,6 +122,9 @@ DATE_FORMAT = "F j"
 USE_I18N = False
 
 USE_TZ = False
+
+
+
 
 
 # Static files (CSS, JavaScript, Images)

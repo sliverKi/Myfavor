@@ -35,7 +35,7 @@ from .serializers import (
 
 from idols.serializers import IdolSerializer
 from idols.models import Idol
-
+from media.serializers import PhotoSerializer
 
 # 신규 유저 추가  :: OK
 # "age", "pick", "email", "password"
@@ -328,3 +328,21 @@ class EditPick(APIView):
         if serializer.is_valid():
             updated_pick = serializer.save()
             return Response(PickSerializer(updated_pick).data)
+
+class UserPhotos(APIView):
+    def get_object(self, pk):
+        try:
+            return Idol.objects.get(pk=pk)    
+        except Idol.DoesNotExist:
+            raise NotFound
+    def post(self, request, pk):
+        idol =self.get_object(pk)
+        if not request.user.is_admin:   
+            raise PermissionDenied
+        serializer=PhotoSerializer(data=request.data)
+        if serializer.is_valid():
+            photo=serializer.save(idol=idol)
+            serializer=PhotoSerializer(photo)
+            return Response(serializer.data, status=HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
