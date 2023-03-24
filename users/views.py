@@ -65,6 +65,7 @@ from django.core.mail import send_mail
 
 from .token import account_activation_token
 
+from media.serializers import PhotoSerializer
 
 # 신규 유저 추가  :: OK
 # "age", "pick", "email", "password"
@@ -360,3 +361,52 @@ class Logout(APIView):  # OK
         logout(request)
         return Response({"message": "See You Again~"}, status=HTTP_200_OK)
 
+# pick
+# (동일한 아이돌인지 비교 확인 추가)
+class EditPick(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+    
+    def get(self, request):
+        pick = request.user
+        serializer = PickSerializer(pick)
+        return Response(serializer.data)
+
+    # pick 수정
+    def put(self, request):
+        pick = request.user
+        
+        
+        serializer = PickSerializer(
+            pick,
+            data=request.data,
+            partial=True,
+        )
+        
+        if serializer.is_valid():
+            updated_pick = serializer.save()
+            return Response(PickSerializer(updated_pick).data)
+
+class UserPhotos(APIView):
+    def get_object(self, pk):
+        try:
+            return Idol.objects.get(pk=pk)    
+        except Idol.DoesNotExist:
+            raise NotFound
+    def post(self, request, pk):
+        idol =self.get_object(pk)
+        if not request.user.is_admin:   
+            raise PermissionDenied
+        serializer=PhotoSerializer(data=request.data)
+        if serializer.is_valid():
+            photo=serializer.save(idol=idol)
+            serializer=PhotoSerializer(photo)
+            return Response(serializer.data, status=HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)

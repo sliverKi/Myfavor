@@ -2,9 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.Idols.as_view()),  # idol-list  [ GET/  POST ]
-    path("<int:pk>/", views.IdolDetail.as_view()),  # idol-detail  [GET /  POST, PUT, DELETE]
-    path("<int:pk>/schedules/", views.IdolSchedule.as_view()),  # only one idol's schedule  [GET / POST]
+    path("", views.Idols.as_view()),  # idol-list  [ GET(OK) /   POST ] ->100%
+    path("<int:pk>/", views.IdolDetail.as_view()),  # idol-detail  [GET /  POST, PUT, DELETE] ->100%
+    path("<int:pk>/schedules/", views.IdolSchedule.as_view()),  # only one idol's schedule  [GET / POST(fix :: when error)]
     
     path("<int:pk>/schedules/<str:type>/",views.IdolSchedulesCategories.as_view()), #idol_schedules category [GET]
     path("<int:pk>/schedules/<str:type>/<str:year>/", views.IdolSchedulesYear.as_view()), # [GET]

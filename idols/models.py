@@ -10,9 +10,37 @@ import datetime
 class Idol(models.Model):
     """Idol Model Definition"""
 
-    class GroupChoices(models.TextChoices):
-        GirlGroup = ("GirlGroup", "GirlGroup")
-        BoyGroup = ("BoyGroup", "BoyGroup")
+    # class GroupChoices(models.TextChoices):
+    #     BROADCAST = "broadcast", "BROADCASTS"  
+    #     GirlGroup = ("GirlGroup", "GirlGroup")
+    #     BoyGroup = ("BoyGroup", "BoyGroup")
+
+
+    class GirlGroupChoices(models.TextChoices):
+        AKMU   ="AKMU", "AKMU"
+        ASEPA = "ASEPA", "ASEPA"
+        BILLLIE = "BILLLIE", "BILLLIE"
+        BLACKPINK ="BLACKPINK", "BLACKPINK"
+        BRAVEGIRLS = "BRAVEGIRLS","BRAVEGIRLS"
+        CELEBFIVE ="CELEBFIVE", "CELEBFIVE"
+        CHERRY_BULLET="CHERRY-BULLET", "CHERRY-BULLET"
+        CHOBOM = "CHOBOM", "CHOBOM"
+        CLASSY = "CLASSY", "CLASSY"
+        DAVICHI = "DAVICHI", "DAVICHI"
+        EXID = "EXID", "EXID"
+        FROMIS_9 = "FROMIS_9", "FROMIS_9"
+        GIDLE = "GIDLE", "GIDLE"
+        ITZY = "ITZY", "ITZY"
+
+    class BoyGroupChoices(models.TextChoices):
+        AB6IX = "AB6IX", "AB6IX"
+        AKMU   ="AKMU", "AKMU"
+        BTOB = "BTOB", "BTOB"
+        BTS= "BTS", "BTS"
+        DAY_6 = "DAY_6", "DAY6"
+        EXO = "EXO", "EXO"
+        HIGH_LIGHT= "HIGH_LIGHT", "HIGH_LIGHT"
+
 
     class SoloChoices(models.TextChoices):
         GirlSolo = ("GirlSolo", "GirlSolo")
@@ -28,21 +56,21 @@ class Idol(models.Model):
     #     else: return 
 
     Girl_group = models.CharField(
-        max_length=30,
+        max_length=40,
         blank=True,
         null=True,
-        choices=GroupChoices.choices,
+        choices=GirlGroupChoices.choices,
         # validators=[group_name_validate]
     )
 
     Boy_group = models.CharField(
-        max_length=30,
+        max_length=40,
         blank=True,
         null=True,
-        choices=GroupChoices.choices,
+        choices=BoyGroupChoices.choices,
     )
     idol_solo = models.CharField(
-        max_length=30,
+        max_length=40,
         blank=True,
         null=True,
         choices=SoloChoices.choices,
@@ -61,7 +89,7 @@ class Idol(models.Model):
     idol_birthday = models.DateField()
 
     idol_gender = models.CharField(
-        max_length=5,
+        max_length=8,
         choices=GenderChoices.choices,
     )
 
@@ -105,7 +133,14 @@ class Schedule(CommonModel):
     )
     
     
-    when=models.DateTimeField(default=timezone.now())
+    when=models.DateTimeField(
+        auto_now=False,
+        auto_now_add=False,
+        blank=False,
+        null=False,
+        )
 
     class Meta:
         verbose_name_plural = "Idol-Schedules"
+
+        

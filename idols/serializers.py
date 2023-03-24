@@ -22,7 +22,7 @@ class IdolsListSerializer(ModelSerializer):
 class ScheduleSerializer(ModelSerializer):
     ScheduleType = CategorySerializer(read_only=True)
     participant = IdolSerializer(many=True, read_only=True) #읽기 전용 필드 
-    when=serializers.DateTimeField(read_only=True)
+    when=serializers.DateTimeField()
 
     class Meta:
         model = Schedule

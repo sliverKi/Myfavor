@@ -1,6 +1,8 @@
+from decouple import config
 from pathlib import Path
 import os
 import environ
+import my_settings
 #import dj_database_url
 env = environ.Env()
 
@@ -16,7 +18,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True #yellow page
+#yellow page
 #DEBUR="RENDER" not in os.environ
 ALLOWED_HOSTS = ["*"]
 #RENDER_EXTERNAL_HOSTNAME=os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -83,29 +85,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+DEBUG = True
+# DATABASES = my_settings.DATABASES
 
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-# if DEBUG:
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-# else:
-#     DATABASES = {
-#         'default':dj_database_url.config(
-#             conn_max_age=600,#db 연결 유지 시간
-#         )
-        # "default": {
-        #     "ENGINE": "django.db.backends.sqlite3",
-        #     "NAME": BASE_DIR / "db.sqlite3",
-        # }
-    # }
 
-# Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -137,6 +128,9 @@ DATE_FORMAT = "F j"
 USE_I18N = False
 
 USE_TZ = False
+
+
+
 
 
 # Static files (CSS, JavaScript, Images)
