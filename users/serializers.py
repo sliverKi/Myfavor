@@ -8,6 +8,11 @@ from .models import User, Report
 from idols.models import Idol
 from idols.serializers import IdolSerializer, IdolsListSerializer
 
+
+class HtmlSerializer(serializers.Serializer):
+    html_field = serializers.CharField()
+
+
 # pick 수정용
 class PickSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,7 +33,7 @@ class CalendarSerializer(serializers.ModelSerializer):
             "pick",
             # "is_admin",
         )
-        
+
     # def get_is_admin(self, user):
     #     request = self.context["request"]
     #     return user.is_admin == request.user.is_admin
@@ -77,7 +82,6 @@ class TinyUserSerializers(serializers.ModelSerializer):
 # 회원가입 시 사용하는 정보
 class PrivateUserSerializer(serializers.ModelSerializer):
     # pick = IdolsListSerializer(read_only=True, many=True)
-
     class Meta:
         model = User
         fields = (
@@ -88,7 +92,7 @@ class PrivateUserSerializer(serializers.ModelSerializer):
             "age",
             # "password",
         )
-        
+
     def validate_age(self, age):
         print("check age")
         if age:
@@ -97,6 +101,7 @@ class PrivateUserSerializer(serializers.ModelSerializer):
         else:
             raise ParseError("나이를 입력해 주세요.")
         return age
+
     def validate_password(self, password):
 
         if password:
@@ -114,7 +119,8 @@ class PrivateUserSerializer(serializers.ModelSerializer):
         else:
             raise ParseError("비밀번호를 입력하세요.")
         return password
-    
+
+
 
 # admin이 유저 정보를 조회할 때 사용하는 정보
 class UserSerializer(serializers.ModelSerializer):
@@ -150,3 +156,17 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = "__all__"
+
+
+class FindPasswordSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        """
+        Check that the email belongs to an existing user
+        """
+        try:
+            user = User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError('No user with this email.')
+        return value

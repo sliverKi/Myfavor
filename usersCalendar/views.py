@@ -218,23 +218,26 @@ class DayView(APIView):
 # 당일 일정 하나씩 pk 번호로 조회 [get / put / delete]
 class DayDetailView(APIView):
     def get_object(self, year, month, day, pk):
+        # calendar = None
         # Retrieve the calendars for the specified year and requesting user
-        calendars = UserCalendar.objects.filter(
+        calendar = UserCalendar.objects.filter(
+            pk=pk,
             when__year=year,
             when__month=month,
             when__day=day,
             owner=self.request.user,
-            pk=pk,
         )
 
-        if not calendars:
+        if not calendar:
             raise NotFound
 
-        return calendars
+        return calendar
 
     def get(self, request, year, month, day, pk):
 
-        if calendar.user != self.request.user:
+        calendar = self.get_object(year, month, day, pk).first()
+
+        if not calendar or calendar.owner != self.request.user:
             raise PermissionDenied(status=HTTP_403_FORBIDDEN)
 
         calendar = self.get_object(year, month, day, pk)
@@ -250,7 +253,11 @@ class DayDetailView(APIView):
     # 당일 일정 수정
     def put(self, request, year, month, day, pk):
         calendar = self.get_object(year, month, day, pk).get()
-        serializer = DateSerializer(calendar, data=request.data, partial=True)
+        serializer = DateSerializer(
+            calendar,
+            data=request.data,
+            partial=True,
+        )
         if serializer.is_valid():
             calendar = serializer.save(user=request.user)
             serializer = DateSerializer(calendar)

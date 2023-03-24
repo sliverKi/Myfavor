@@ -1,6 +1,19 @@
+from datetime import timedelta
+from django.utils import timezone
+from django.urls import reverse_lazy
+from rest_framework.generics import GenericAPIView
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+
+
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
+
+from tokenize import generate_tokens
 from django.shortcuts import render, redirect
 from django.db import transaction
 from django.contrib.auth import login, logout
+from django.urls import reverse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,7 +22,11 @@ from rest_framework.status import (
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+    HTTP_403_FORBIDDEN,
+    HTTP_302_FOUND,
 )
+
 from rest_framework.exceptions import (
     NotFound,
     ParseError,
@@ -31,10 +48,23 @@ from .serializers import (
     SimpleUserSerializers,
     UserSerializer,
     PickSerializer,
+    FindPasswordSerializer,HtmlSerializer,
 )
+
+from django.conf import settings
+
 
 from idols.serializers import IdolSerializer
 from idols.models import Idol
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+
+from .token import account_activation_token
+
 from media.serializers import PhotoSerializer
 
 # 신규 유저 추가  :: OK
@@ -164,11 +194,43 @@ class EditPassword(APIView):  # OK
             if old_password != new_password:
                 user.set_password(new_password)
                 user.save()
-                return Response({"비밀번호가 성공적으로 변경되었습니다."} )
+                return Response({"비밀번호가 성공적으로 변경되었습니다."})
             else:
                 return Response({"변경 될 비밀번호가 기존 비밀번호와 동일합니다."})
         else:
             raise ParseError("비밀번호를 다시 확인해주세요.")
+
+
+# pick 수정
+# (동일한 아이돌인지 비교 확인 추가)
+class EditPick(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+
+    def get(self, request):
+        pick = request.user
+        serializer = PickSerializer(pick)
+        return Response(serializer.data)
+
+    # pick 수정
+    def put(self, request):
+        pick = request.user
+
+        serializer = PickSerializer(
+            pick,
+            data=request.data,
+            partial=True,
+        )
+
+        if serializer.is_valid():
+            updated_pick = serializer.save()
+            return Response(PickSerializer(updated_pick).data)
 
 
 # schedule 제보하기  :: OK
@@ -186,7 +248,10 @@ class AllReport(APIView):
         serializer = ReportDetailSerializer(all_reports, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
-    def post(self, request,):
+    def post(
+        self,
+        request,
+    ):
 
         serializer = ReportDetailSerializer(data=request.data)
         if serializer.is_valid():
@@ -198,7 +263,7 @@ class AllReport(APIView):
                 whoes = request.data.get("whoes")
                 print(request.user.pick)
                 if request.user.pick.pk not in whoes:
-                    #if request.user.pick.pk
+                    # if request.user.pick.pk
                     raise ParseError("참여자는 본인의 아이돌만 선택 가능합니다.")
                 if not whoes:
                     raise ParseError("제보할 아이돌을 알려 주세요.")
@@ -227,8 +292,8 @@ class AllReport(APIView):
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
+
 class ReportDetail(APIView):
-    
     def get_object(self, pk):
         try:
             return Report.objects.get(pk=pk)
@@ -253,7 +318,9 @@ class ReportDetail(APIView):
             )
         if serializer.is_valid():
             updated_report = serializer.save()
-            return Response(ReportDetailSerializer(updated_report).data, status=HTTP_200_OK)
+            return Response(
+                ReportDetailSerializer(updated_report).data, status=HTTP_200_OK
+            )
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
@@ -281,12 +348,9 @@ class Login(APIView):  # 관리자인지 아닌지 정보도 같이 전송할 �
             raise ParseError("잘못된 정보를 입력하였습니다.")
         if user.check_password(password):
             login(request, user)
-            serializer =TinyUserSerializers(user)
+            serializer = TinyUserSerializers(user)
             return Response(serializer.data, status=HTTP_200_OK)
-        return Response(
-            {"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST
-        )
-
+        return Response({"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST)
 
 
 # 로그아웃  :: OK
