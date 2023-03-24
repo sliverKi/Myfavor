@@ -1,3 +1,5 @@
+# 0324 수현 파일 확인용
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html

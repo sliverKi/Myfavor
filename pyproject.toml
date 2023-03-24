@@ -18,6 +18,8 @@ djangorestframework-simplejwt = "^5.2.2"
 bcrypt = "^4.0.1"
 environ = "^1.0"
 requests = "^2.28.2"
+django-rest-framework = "^0.1.0"
+django-rest-auth = "^0.9.5"
 
 
 [build-system]
