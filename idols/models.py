@@ -143,4 +143,4 @@ class Schedule(CommonModel):
     class Meta:
         verbose_name_plural = "Idol-Schedules"
 
-        
+#>>3/26        
