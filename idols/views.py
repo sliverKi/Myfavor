@@ -3,8 +3,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound,PermissionDenied,ParseError
 from rest_framework.status import (
-    HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, 
-    HTTP_400_BAD_REQUEST,HTTP_404_NOT_FOUND )
+    HTTP_200_OK, 
+    HTTP_201_CREATED, 
+    HTTP_202_ACCEPTED, 
+    HTTP_204_NO_CONTENT, 
+    HTTP_400_BAD_REQUEST,
+    HTTP_403_FORBIDDEN, 
+    HTTP_404_NOT_FOUND 
+)
 from .models import Idol, Schedule
 from .serializers import  IdolsListSerializer, IdolDetailSerializer, ScheduleSerializer, DateScheduleSerializer
 from categories.serializers import CategorySerializer
@@ -26,10 +32,10 @@ class Idols(APIView):#idol-list
         if not request.user.is_admin: #관리자 아닌 경우 
             raise PermissionDenied
         serializer = IdolDetailSerializer(data=request.data)
+        
         if serializer.is_valid():# 유효성 체크
             idol = serializer.save()
             return Response(IdolsListSerializer(idol).data, status=HTTP_201_CREATED)
-        
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
@@ -75,13 +81,13 @@ class IdolDetail(APIView): #특정 idol-info
                     except Schedule.DoesNotExist:
                         raise ParseError("Schedule not Found")
             updated_idol_schedules = serializer.save()
-            return Response(IdolDetailSerializer( updated_idol_schedules).data, status=HTTP_200_OK)
+            return Response(IdolDetailSerializer(updated_idol_schedules).data, status=HTTP_202_ACCEPTED)
         else:
             return Response(status=HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk): #관리자만 삭제 가능  (OK)
         idol=self.get_object(pk)
-        print(request.user.is_admin)
+       
         if request.user.is_admin==False: #관리자가 아닌 경우 
             raise PermissionDenied
         idol.delete()
@@ -254,9 +260,9 @@ class Schedules(APIView): #'아이돌 구분 없이' 현재 저장되어진 스�
             serializer = ScheduleSerializer(data=request.data)
             if serializer.is_valid():
                 schedule = serializer.save()
-                return Response(ScheduleSerializer(schedule).data)
+                return Response(ScheduleSerializer(schedule).data, HTTP_201_CREATED )
             else:
-                return Response(serializer.errors)
+                return Response(serializer.errors, HTTP_403_FORBIDDEN)
 
 
 class ScheduleDetail(APIView): # 특정 schedule의 pk로 들어감. 
@@ -270,7 +276,7 @@ class ScheduleDetail(APIView): # 특정 schedule의 pk로 들어감.
     def get(self, request, pk):
         schedule = self.get_object(pk)
         serializer = ScheduleSerializer(schedule)
-        return Response(serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
     def put(self, request, pk):
         
@@ -286,9 +292,9 @@ class ScheduleDetail(APIView): # 특정 schedule의 pk로 들어감.
             )
             if serializer.is_valid():
                 updated_schedule = serializer.save()
-                return Response(ScheduleSerializer(updated_schedule).data)
+                return Response(ScheduleSerializer(updated_schedule).data, status=HTTP_202_ACCEPTED)
             else:
-                return Response(serializer.errors)
+                return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):#(OK)
 

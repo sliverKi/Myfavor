@@ -10,7 +10,7 @@ from rest_framework.exceptions import (
     NotFound,
 )
 from rest_framework.validators import ValidationError
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED,HTTP_202_ACCEPTED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 from users.serializers import TinyUserSerializers
 from users.models import User
 from .models import UserCalendar
@@ -39,9 +39,9 @@ class MyCalendar(APIView):
             schedule = serializer.save(
                 owner=request.user,
             )
-            return Response(MySerializer(schedule).data)
+            return Response(MySerializer(schedule).data, status=HTTP_201_CREATED)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_403_FORBIDDEN)
 
 
 # 유저 일정 조회, 수정, 삭제 / user만 가능
@@ -76,15 +76,15 @@ class MyCalendarDetail(APIView):
         if serializer.is_valid():
             schedule = serializer.save()
             serializer = MySerializer(schedule)
-            return Response(serializer.data)
+            return Response(serializer.data, status=HTTP_202_ACCEPTED)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     # 유저 일정 삭제
     def delete(self, request, pk):
         schedule = self.get_object(pk, request.user)
         schedule.delete()
-        return Response({"message": "일정이 삭제되었습니다."})
+        return Response({"message": "일정이 삭제되었습니다."}, status=HTTP_202_ACCEPTED)
 
 
 # 년도별 조회
@@ -205,14 +205,15 @@ class DayView(APIView):
     def post(self, request, year, month, day):
         serializer = MySerializer(data=request.data)
         print("day", day)
+        
         if serializer.is_valid():
             schedule = serializer.save(
                 owner=request.user,
             )
             print("day", day)
-            return Response(MySerializer(schedule).data)
+            return Response(MySerializer(schedule).data, status=HTTP_200_OK)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors,status=HTTP_400_BAD_REQUEST)
 
 
 # 당일 일정 하나씩 pk 번호로 조회 [get / put / delete]
@@ -269,4 +270,4 @@ class DayDetailView(APIView):
     def delete(self, request, year, month, day, pk):
         schedule = self.get_object(year, month, day, pk)
         schedule.delete()
-        return Response({"message": "일정이 삭제되었습니다."}, status=HTTP_200_OK)
+        return Response({"message": "일정이 삭제되었습니다."}, status=HTTP_204_NO_CONTENT)
