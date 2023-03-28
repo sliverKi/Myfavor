@@ -1,12 +1,9 @@
 import re
-
 from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework import serializers
-
 from .models import User, Report
-
 from idols.models import Idol
-from idols.serializers import IdolSerializer, IdolsListSerializer
+from idols.serializers import IdolSerializer
 
 
 class HtmlSerializer(serializers.Serializer):
@@ -23,25 +20,18 @@ class PickSerializer(serializers.ModelSerializer):
 # 캘린더에서 사용할 유저 정보
 class CalendarSerializer(serializers.ModelSerializer):
     pick = IdolSerializer(read_only=True)
-    # is_admin = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
-            # "pk",
+      
             "nickname",
             "pick",
-            # "is_admin",
         )
-
-    # def get_is_admin(self, user):
-    #     request = self.context["request"]
-    #     return user.is_admin == request.user.is_admin
-
 
 # 가장 적은 유저 정보(유저 스케줄에 나타낼 정보)
 class SimpleUserSerializers(serializers.ModelSerializer):
-    # pick = IdolSerializer(read_only=True)
+   
     is_admin = serializers.SerializerMethodField()
 
     class Meta:
@@ -61,7 +51,7 @@ class SimpleUserSerializers(serializers.ModelSerializer):
 
 # admin 조회 용
 class TinyUserSerializers(serializers.ModelSerializer):
-    # pick = IdolSerializer(read_only=True)
+  
 
     def get_object(self, user):
         request = self.context["request"]
@@ -81,7 +71,6 @@ class TinyUserSerializers(serializers.ModelSerializer):
 
 # 회원가입 시 사용하는 정보
 class PrivateUserSerializer(serializers.ModelSerializer):
-    # pick = IdolsListSerializer(read_only=True, many=True)
     class Meta:
         model = User
         fields = (
@@ -90,7 +79,6 @@ class PrivateUserSerializer(serializers.ModelSerializer):
             "pick",
             "email",
             "age",
-            # "password",
         )
 
     def validate_age(self, age):
@@ -139,9 +127,6 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "pick",
             "is_admin",
-            # "date_joined",
-            # "is_superuser",
-            # "is_staff",
         )
 
     def get_is_admin(self, user):

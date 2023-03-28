@@ -3,33 +3,21 @@ from pathlib import Path
 import os
 import environ
 import my_settings
-#import dj_database_url
+
 env = environ.Env()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-#yellow page
-#DEBUR="RENDER" not in os.environ
 ALLOWED_HOSTS = ["*"]
-#RENDER_EXTERNAL_HOSTNAME=os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-#if RENDER_EXTERNAL_HOSTNAME:
-#    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
-    # "rest_framework_simplejwt",
 ]
 
 CUSTOM_APPS = [
@@ -39,9 +27,7 @@ CUSTOM_APPS = [
     "media.apps.MediaConfig",
     "idols.apps.IdolsConfig",
     "categories.apps.CategoriesConfig",
-    "times.apps.TimesConfig",
 ]
-# Application definition
 
 SYSTEM_APPS = [
     "django.contrib.admin",
@@ -82,7 +68,6 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = "config.wsgi.application"
 
 DEBUG = True
@@ -103,10 +88,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = "ko-kr"
 
 TIME_ZONE = "Asia/Seoul"
@@ -119,41 +100,28 @@ USE_I18N = False
 
 USE_TZ = False
 
-
-
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
 STATIC_URL = "/static/"
 if not DEBUG:
     STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles')
     STATICFILES_STORAGE="whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 MEDIA_ROOT = "uploads"
-# DB저장(file이 실제로 있는 위치)
-MEDIA_URL = "user-uploads/"
-# upload된 파일에 접근하여 화면에 노출 시킴
 
-# react 와 연결시켜주기위한코드
+MEDIA_URL = "user-uploads/"
+
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
-CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
+CORS_ORIGIN_ALLOW = True
+CORS_ALLOWED_ORIGINS_ALL = True
+CSRF_TRUSTED_ORIGINS = ["http://*.myfavor.co.kr", "https://*.myfavor.co.kr"]
 
+CSRF_COOKIE_SECURE=True
+SESSION_COOKIE_SECURE=True
 
-# SESSION_COOKIE_AGE=1200 #유지 시간 : 20분  세션 정보 갱신
-# SESSION_SAVE_EVERY_REQUEST=True #사용자가 응답을 보내지 않으면 세션 타임 아웃
-
-
-# GH_SECRET=env("GH_SECRET")
 CF_TOKEN=env("CF_TOKEN")
 CF_ID=env("CF_ID")
 
@@ -164,7 +132,7 @@ REST_FRAMEWORK = {
     ]
 }
 
-ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True  # 비밀번호 지워지지않음
-ACCOUNT_SESSION_REMEMBER = True  # 브라우저를 닫아도 세션기록 유지! [ 로그인 안풀리게 ! ]
+ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True  
+ACCOUNT_SESSION_REMEMBER = True  
 SESSION_COOKIE_AGE = 3600
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
