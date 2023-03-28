@@ -2,22 +2,17 @@ from django.db import models
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.contrib.auth.models import (
     AbstractUser,
-    AbstractBaseUser,
-    BaseUserManager,
-    PermissionsMixin,
 )
-from django.utils import timezone
+
 from categories.models import Category
 from datetime import datetime
 from .manager import CustomUserManager
 
 # user
 class User(AbstractUser):
-    username = None  # username을 사용 안할 경우
+    username = None  
     name = models.CharField(
-        # 동명이인 생각하기
         max_length=100,
-        # default="",
         blank=False,
         validators=[MinLengthValidator(2, "이름은 2자 이상이어야합니다.")],
     )
@@ -39,7 +34,11 @@ class User(AbstractUser):
 
     objects = CustomUserManager()
 
-    profileImg = models.URLField(blank=True, null=True,)
+    profileImg = models.URLField(
+        blank=True, 
+        null=True, 
+        default="https://api.cloudflare.com/client/v4/accounts/135e63e511ff302b43eaab2356b50bf6/images/v1/fccba4a0-df32-485d-8c6f-9410b97c2100"
+    )
 
     age = models.PositiveIntegerField(
         blank=False,
@@ -49,11 +48,10 @@ class User(AbstractUser):
         ],
     )
 
-    is_admin = models.BooleanField(default=False)  # 관리자 - 사용자 구분
+    is_admin = models.BooleanField(default=False)  
 
     pick = models.ForeignKey(
         "idols.Idol",
-        # default="",
         blank=False,
         null=True,
         on_delete=models.SET_NULL,
@@ -76,7 +74,7 @@ class User(AbstractUser):
 # 제보
 class Report(Category):
 
-    owner = models.ForeignKey(  # 작성자
+    owner = models.ForeignKey(  
         "users.User",
         max_length=100,
         default="",
@@ -87,7 +85,7 @@ class Report(Category):
     title = models.CharField(max_length=100, default="")
     location = models.CharField(max_length=100, default="")
     time = models.DateTimeField(default=datetime.now)
-    whoes = models.ManyToManyField(  # 참여자 (paticipant)
+    whoes = models.ManyToManyField(  
         "idols.Idol",
         null=True,
         blank=True,

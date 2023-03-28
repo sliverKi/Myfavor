@@ -1,15 +1,11 @@
-# 0324 수현 파일 확인용
-
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 from .models import User, Report
 
-# Register your models here.
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     def thumbnail(self, object):
-        # print(object.profileImg)
         try:
             return format_html(
                 '<img src="{}" width="40" style="border-radius:50%"/>'.format(
@@ -25,7 +21,6 @@ class CustomUserAdmin(UserAdmin):
             "Profile",
             {
                 "fields": (
-                    # "username",
                     "name",
                     "profileImg",
                     "nickname",
@@ -61,7 +56,6 @@ class CustomUserAdmin(UserAdmin):
 
     list_display = (
         "id",
-        # "username",
         "name",
         "nickname",
         "email",
@@ -72,12 +66,10 @@ class CustomUserAdmin(UserAdmin):
         "email",
         "nickname",
         "name",
-        # "username",
         "pick",
     )
     list_filter = ("nickname",)
     search_fields = (
-        # "username",
         "name",
         "nickname",
         "name",

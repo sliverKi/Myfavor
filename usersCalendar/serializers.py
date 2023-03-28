@@ -5,11 +5,7 @@ from users.models import User
 from users.serializers import (
     CalendarSerializer,
     SimpleUserSerializers,
-
 )
-
-## 0322 최종 코드
-
 
 # 유저 일정만 있는 캘린더
 class MySerializer(ModelSerializer):
@@ -39,10 +35,6 @@ class MyDetailSerializer(ModelSerializer):
             "title",
             "when",
             "contents",
-            # "idol",
-            # "idol_id",
-            # "idol_schedule",
-            # "idol_schedule_id",
         )
 
 
